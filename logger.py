@@ -9,13 +9,15 @@ def generate_directories(filename):
     else:
         directories = filename.split('/')[0:-1]
         location = '/'.join(directories)
-        os.mkdir(location)
+        try:
+            os.mkdir(location)
+        except:
+            pass
 
 
 def get_logger(name, location):
-    datageneratorlogfile = os.path.join(config_parser.configuration['output_location'],
-        config_parser.configuration[location]['log_location'])
-
+    configuration = config_parser.configuration
+    datageneratorlogfile = configuration.get_log_location(location)
     generate_directories(datageneratorlogfile)
     # create logger with 'insight data generation'
     logger = logging.getLogger(name)

@@ -10,12 +10,18 @@ output_location: &output_location /tmp/competition/
 exploratory_data_analysis: 
   program: exploratory_data_analysis.py
   log_location: exploratory_data_analysis.log
-  plots: plots
+  directory: exploratory_data_analysis
 # split the data as hold out set
 # then to train test split etc for cross validation
-splitter: splitter.py
+splitter: 
+  program: splitter.py
+  log_location: splitter.log
+  directory: splitter
 # Data can be of type numerical, categorical, text, image etc
-generate_data_types: generate_datatype.py
+generate_datatypes: 
+  program: generate_datatypes.py
+  log_location: generate_datatypes.log
+  directory: generate_datatypes
 
 # stacker to horizontally stack different features
 # for example combine different data types

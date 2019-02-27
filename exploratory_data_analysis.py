@@ -1,8 +1,9 @@
 #! /usr/bin/env python
+
 import logger
 import config_parser
 import argparse
-import nbformat as nbf
+import utils
 import pandas as pd
 import numpy as np
 import io
@@ -17,17 +18,12 @@ def parse_cmdline():
     parser.add_argument('inputfile',
                         type=str,                    
                         help='Inputfile')
-    parser.add_argument('outputfile',
-                        type=str,                    
-                        help='outputfile')
+    # parser.add_argument('outputfile',
+    #                     type=str,                    
+    #                     help='outputfile')
     
     args = parser.parse_args()
     return args
-
-
-def read_to_df(filename):
-    df = pd.read_csv(filename)
-    return df
 
 
 def detect_outlier(data_1):
@@ -79,18 +75,11 @@ def generate_plots_df(type_, df, name, plots_location):
     fig.savefig('{}/{}_{}.png'.format(plots_location, name, type_))
 
 
-def generate_directories(directory):
-    if os.path.exists(directory):
-        return
-    else:
-        os.mkdir(directory)
-
-
 def simple_analysis(df):
     cnf = config_parser.configuration
-    plots_location = os.path.join(cnf['output_location'],
-    cnf['exploratory_data_analysis']['plots'])
-    generate_directories(plots_location)
+    plots_location = cnf.get_directory('exploratory_data_analysis')
+    
+    utils.generate_directories(plots_location)
     eda_logger.info(df.shape)
     eda_logger.info(df.head(5))
     eda_logger.info(str(df.describe()))
@@ -117,7 +106,7 @@ def simple_analysis(df):
 
 def main(args):
     if args.inputfile:
-        df = read_to_df(args.inputfile)
+        df = pd.read_csv(args.inputfile)
         simple_analysis(df)
 
 
