@@ -1,0 +1,39 @@
+---
+# Configuration file for automating the tasks of machine learning competion
+# every data goes under output_location
+# certain module level configurations are also possible
+
+output_location: &output_location /tmp/competition/
+
+# generate graphs based on input data
+# generate figures as well as ipython notebooks
+exploratory_data_analysis: 
+  program: exploratory_data_analysis.py
+  log_location: exploratory_data_analysis.log
+  plots: plots
+# split the data as hold out set
+# then to train test split etc for cross validation
+splitter: splitter.py
+# Data can be of type numerical, categorical, text, image etc
+generate_data_types: generate_datatype.py
+
+# stacker to horizontally stack different features
+# for example combine different data types
+
+stacker: stacker.py
+
+# Feature selector can select features after the stacking step
+
+feature_selector: feature_selector.py
+
+# Model selector
+
+model_selector: model_selector.py
+
+# Hyper parameter selector
+
+hyper_parameter_selector: hyper_parameter_selector.py
+
+# evaluator
+
+evaluator: evaluater.py
