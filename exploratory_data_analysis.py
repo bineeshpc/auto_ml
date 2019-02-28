@@ -78,8 +78,7 @@ def generate_plots_df(type_, df, name, plots_location):
 def simple_analysis(df):
     cnf = config_parser.configuration
     plots_location = cnf.get_directory('exploratory_data_analysis')
-    
-    utils.generate_directories(plots_location)
+
     eda_logger.info(df.shape)
     eda_logger.info(df.head(5))
     eda_logger.info(str(df.describe()))

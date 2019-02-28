@@ -16,6 +16,9 @@ class Command:
             print('running {}'.format(self.undo_cmd))
             self.undo_output = subprocess.run(self.undo_cmd.split())
 
+    def __repr__(self):
+        return "cmd is \n{}\nundo_cmd is\n{}\n-----".format(self.cmd, self.undo_cmd)
+
 
 if  __name__ == "__main__":
     commands = [

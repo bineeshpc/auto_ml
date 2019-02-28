@@ -35,8 +35,9 @@ def parse_cmdline():
 
 def split_(df, y_column):
     df1 = df.drop(y_column, axis='columns')
+    y_column_df = pd.DataFrame({y_column: df[y_column]})
     X_train, X_test, y_train, y_test = train_test_split(df1, 
-    df[y_column],
+    y_column_df,
      test_size=.2,
      stratify=df[y_column])
     return X_train, X_test, y_train, y_test
@@ -50,10 +51,10 @@ def main(args):
 
         configuration = config_parser.configuration
         directory = configuration.get_directory('splitter')
-        utils.generate_directories(directory)
+        
         for name, df in zip(names, dfs):
             filename = os.path.join(directory, name + '.csv')
-            df.to_csv(filename)
+            df.to_csv(filename, index=False)
             
 
 

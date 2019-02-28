@@ -4,6 +4,7 @@
 # certain module level configurations are also possible
 
 output_location: &output_location /tmp/competition/
+src_location: /home/bineesh/Dropbox/competition/endtoend
 
 # generate graphs based on input data
 # generate figures as well as ipython notebooks
@@ -11,6 +12,7 @@ exploratory_data_analysis:
   program: exploratory_data_analysis.py
   log_location: exploratory_data_analysis.log
   directory: exploratory_data_analysis
+
 # split the data as hold out set
 # then to train test split etc for cross validation
 splitter: 
@@ -34,7 +36,15 @@ feature_selector: feature_selector.py
 
 # Model selector
 
-model_selector: model_selector.py
+model_selector: 
+  program: model_selector.py
+  log_location: model_selector.log
+  directory: model_selector
+  problem_type: regression
+  model_filename: winning_model.pkl
+    # classification: false
+  
+
 
 # Hyper parameter selector
 
@@ -42,4 +52,63 @@ hyper_parameter_selector: hyper_parameter_selector.py
 
 # evaluator
 
-evaluator: evaluater.py
+evaluator: 
+  program: evaluator.py
+  log_location: evaluator.log
+  directory: evaluator
+  prediction_file: prediction.csv
+
+
+run_endtoend:
+  program: run_endtoend.py
+  log_location: run_endtoend.log
+  directory: run_endtoend
+  order: 
+    - exploratory_data_analysis
+    - splitter
+    - generate_datatypes
+    - model_selector
+    - evaluator
+  exploratory_data_analysis:
+    order: 
+      - input_file
+    location:
+      - None
+    input_file: winequality-red.csv
+  splitter:
+    order:
+      - input_file
+      - y_column
+    location:
+      - None
+      - None
+    input_file: winequality-red.csv
+    y_column: quality
+  generate_datatypes:
+    order:
+      - X_train
+    location:
+      - splitter
+    X_train: X_train.csv
+  model_selector:
+    order:
+      - X_train
+      - y_train
+    location:
+      - splitter
+      - splitter
+    X_train: X_train.csv
+    y_train: y_train.csv
+  evaluator:
+    order:
+      - X_test
+      - y_test
+      - winning_model
+    location:
+      - splitter
+      - splitter
+      - model_selector
+    X_test: X_test.csv
+    y_test: y_test.csv
+    winning_model: winning_model.pkl
+    
