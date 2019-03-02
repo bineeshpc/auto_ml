@@ -63,13 +63,20 @@ def main(args):
                 
         return ' '.join(outs)
 
+    def should_run(component):
+        
+        arg_dict = config_parser.configuration.get_arguments(component)
+        return arg_dict['run']
+        
+
     for component in config_parser.configuration.get_components_ordered():
         src_location = config_parser.configuration.get_source_location()
         program = config_parser.configuration.get_attribute(component, 'program')
         arguments = get_arguments(component)
         command_string = '{}/{} {}'.format(src_location, program, arguments)
         cmd = Command(command_string)
-        cmd.do()
+        if should_run(component):
+            cmd.do()
         
     
 if __name__ == "__main__":

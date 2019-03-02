@@ -1,4 +1,6 @@
-import subprocess
+#! /usr/bin/env python
+
+import subprocess 
 
 class Command:
     def __init__(self, cmd, undo_cmd=None):
@@ -20,6 +22,22 @@ class Command:
         return "cmd is \n{}\nundo_cmd is\n{}\n-----".format(self.cmd, self.undo_cmd)
 
 
+class JobRunner:
+    def __init__(self):
+        self.commands = []
+
+    def add_commamnd(self, cmd_string):
+        self.commands.append(Command(cmd_string))
+
+    def execute(self, stop_on_error=False):
+        for cmd in self.commands:
+            try:
+                cmd.do()
+            except:
+                break
+        
+        
+
 if  __name__ == "__main__":
     commands = [
         Command('mkdir -p /tmp/test'),
@@ -30,3 +48,9 @@ if  __name__ == "__main__":
     for cmd in commands:
         cmd.do()
         cmd.undo()
+
+    jr = JobRunner()
+    jr.add_commamnd('ls')
+    jr.add_commamnd("badcmd")
+    jr.add_commamnd('pwd')
+    jr.execute()

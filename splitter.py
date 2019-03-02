@@ -36,10 +36,18 @@ def parse_cmdline():
 def split_(df, y_column):
     df1 = df.drop(y_column, axis='columns')
     y_column_df = pd.DataFrame({y_column: df[y_column]})
-    X_train, X_test, y_train, y_test = train_test_split(df1, 
-    y_column_df,
-     test_size=.2,
-     stratify=df[y_column])
+    try:
+        X_train, X_test, y_train, y_test = train_test_split(df1, 
+        y_column_df,
+         test_size=.2,
+        stratify=y_column_df)
+    except ValueError:
+        print('trying without stratify')
+        X_train, X_test, y_train, y_test = train_test_split(df1, 
+        y_column_df,
+         test_size=.2
+        )
+
     return X_train, X_test, y_train, y_test
 
 def main(args):

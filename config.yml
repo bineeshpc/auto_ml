@@ -48,7 +48,12 @@ model_selector:
 
 # Hyper parameter selector
 
-hyper_parameter_selector: hyper_parameter_selector.py
+hyper_parameter_selector: 
+  program: hyper_parameter_selector.py
+  log_location: hyper_parameter_selector.log
+  directory: hyper_parameter_selector
+  problem_type: classification
+  model_filename: winning_model.pkl
 
 # evaluator
 
@@ -68,12 +73,14 @@ run_endtoend:
     - splitter
     - generate_datatypes
     - model_selector
+    - hyper_parameter_selector
     - evaluator
   exploratory_data_analysis:
     order: 
       - input_file
     location:
       - None
+    run: no
     input_file: winequality-red.csv
   splitter:
     order:
@@ -82,6 +89,7 @@ run_endtoend:
     location:
       - None
       - None
+    run: yes
     input_file: winequality-red.csv
     y_column: quality
   generate_datatypes:
@@ -89,6 +97,7 @@ run_endtoend:
       - X_train
     location:
       - splitter
+    run: yes
     X_train: X_train.csv
   model_selector:
     order:
@@ -97,6 +106,17 @@ run_endtoend:
     location:
       - splitter
       - splitter
+    run: no
+    X_train: X_train.csv
+    y_train: y_train.csv
+  hyper_parameter_selector:
+    order:
+      - X_train
+      - y_train
+    location:
+      - splitter
+      - splitter
+    run: yes
     X_train: X_train.csv
     y_train: y_train.csv
   evaluator:
@@ -104,11 +124,15 @@ run_endtoend:
       - X_test
       - y_test
       - winning_model
+      - problem_type
     location:
       - splitter
       - splitter
       - model_selector
+      - None
+    run: yes
     X_test: X_test.csv
     y_test: y_test.csv
     winning_model: winning_model.pkl
+    problem_type: classification # can be classification or regression
     
