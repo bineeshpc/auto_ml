@@ -54,9 +54,13 @@ def parse_cmdline():
 class ModelSelector:
     
     def get_model(self, problem_type, df, y):
-        self.problem_types = {'regression': Regressor(df, y),
-                              'classification': Classifier(df, y)}
-        return self.problem_types[problem_type]
+        model_selector_logger.info('problem type is {}'.format(problem_type))
+        if problem_type == 'regression':
+            model = Regressor(df, y)
+        if problem_type == 'classification':
+            model = Classifier(df, y)
+        model_selector_logger.info('selected {}'.format(model))
+        return model
 
 class Classifier:
     

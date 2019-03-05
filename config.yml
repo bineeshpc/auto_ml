@@ -24,15 +24,30 @@ generate_datatypes:
   program: generate_datatypes.py
   log_location: generate_datatypes.log
   directory: generate_datatypes
+  categorical:
+    - Sex
+    - Embarked
+
+transformer:
+  program: transformer.py
+  log_location: transformer.log
+  directory: transformer
+  
 
 # stacker to horizontally stack different features
 # for example combine different data types
 
-stacker: stacker.py
+stacker: 
+  program: stacker.py
+  log_location: stacker.log
+  directory: stacker
 
 # Feature selector can select features after the stacking step
 
-feature_selector: feature_selector.py
+feature_selector: 
+  program: feature_selector.py
+  log_location: feature_selector.log
+  directory: feature_selector
 
 # Model selector
 
@@ -44,8 +59,6 @@ model_selector:
   model_filename: winning_model.pkl
     # classification: false
   
-
-
 # Hyper parameter selector
 
 hyper_parameter_selector: 
@@ -70,43 +83,97 @@ run_endtoend:
   directory: run_endtoend
   order: 
     - exploratory_data_analysis
-    - splitter
     - generate_datatypes
+    - transformer
+    - stacker
+    - splitter
+    - feature_selector
     - model_selector
     - hyper_parameter_selector
     - evaluator
+
   exploratory_data_analysis:
     order: 
       - input_file
     location:
       - None
     run: no
-    input_file: winequality-red.csv
+    input_file: titanic/train.csv
+
+  generate_datatypes:
+    order:
+      - X_train
+    location:
+      - None
+    run: yes
+    X_train: titanic/train.csv
+
+  transformer:
+    order:
+      - bool_
+      - categorical
+      - text
+      - numerical
+    location:
+      - generate_datatypes
+      - generate_datatypes
+      - generate_datatypes
+      - generate_datatypes
+    run: yes
+    bool_: bool_.csv
+    categorical: categorical.csv
+    text: text.csv
+    numerical: numerical.csv
+
+  stacker:
+    order:
+      - bool_
+      - categorical
+      - text
+      - numerical
+    location:
+      - transformer
+      - transformer
+      - transformer
+      - transformer
+    run: yes
+    bool_: bool_.csv
+    categorical: categorical.csv
+    text: text.csv
+    numerical: numerical.csv
+
+
   splitter:
     order:
       - input_file
       - y_column
     location:
-      - None
+      - stacker
       - None
     run: yes
-    input_file: winequality-red.csv
-    y_column: quality
-  generate_datatypes:
-    order:
-      - X_train
-    location:
-      - splitter
-    run: yes
-    X_train: X_train.csv
-  model_selector:
+    input_file: X_train.csv 
+    y_column: Survived
+
+
+  feature_selector:
     order:
       - X_train
       - y_train
     location:
       - splitter
       - splitter
-    run: no
+    run: yes
+    X_train: X_train.csv
+    y_train: y_train.csv
+  
+  model_selector:
+    order:
+      - X_train
+      - y_train
+    location:
+      - feature_selector
+      - feature_selector
+    run: yes
     X_train: X_train.csv
     y_train: y_train.csv
   hyper_parameter_selector:
@@ -114,9 +181,9 @@ run_endtoend:
       - X_train
       - y_train
     location:
-      - splitter
-      - splitter
-    run: yes
+      - feature_selector
+      - feature_selector
+    run: no
     X_train: X_train.csv
     y_train: y_train.csv
   evaluator:

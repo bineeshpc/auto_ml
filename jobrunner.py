@@ -26,13 +26,15 @@ class JobRunner:
     def __init__(self):
         self.commands = []
 
-    def add_commamnd(self, cmd_string):
+    def add_command(self, cmd_string):
         self.commands.append(Command(cmd_string))
 
     def execute(self, stop_on_error=False):
         for cmd in self.commands:
             try:
                 cmd.do()
+                if cmd.output.returncode != 0:
+                    break
             except:
                 break
         

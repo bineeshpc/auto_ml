@@ -84,23 +84,32 @@ def simple_analysis(df):
     eda_logger.info(str(df.describe()))
     eda_logger.info(get_df_info(df))
     for column in df.columns:
-        eda_logger.info("Here are the outliers in column {}".format(column))
-        outliers = find_outliers(df[column])
-        eda_logger.info(outliers)
-        fraction_of_outliers = len(outliers) / len(df[column])
-        eda_logger.info("fraction of outliers is {}".format(fraction_of_outliers))
-        
-        unique_values = df[column].unique()
-        num_unique_values = len(unique_values)
-        eda_logger.info("number of unique values in column {} is {}".format(column, num_unique_values))
-        value_counts = df[column].value_counts()
-        eda_logger.info("Top 10 value counts for the column {} are \n{}".format(column, value_counts.head(10)))
-        
-        for plot_type in ['boxplot', 'violinplot']:
-            generate_plots(plot_type, df[column], column, plots_location)
+        try:
+            eda_logger.info("Here are the outliers in column {}".format(column))
+            outliers = find_outliers(df[column])
+            eda_logger.info(outliers)
+            fraction_of_outliers = len(outliers) / len(df[column])
+            eda_logger.info("fraction of outliers is {}".format(fraction_of_outliers))
+        except:
+            eda_logger.error('Exception happened while processing column {} outliers'.format(column))
+        try:
+            unique_values = df[column].unique()
+            num_unique_values = len(unique_values)
+            eda_logger.info("number of unique values in column {} is {}".format(column, num_unique_values))
+            value_counts = df[column].value_counts()
+            eda_logger.info("Top 10 value counts for the column {} are \n{}".format(column, value_counts.head(10)))
 
-    generate_plots_df('heatmap', df, 'df', plots_location)
-    generate_plots_df('correlation', df, 'df', plots_location)
+            for plot_type in ['boxplot', 'violinplot']:
+                generate_plots(plot_type, df[column], column, plots_location)
+        except:
+            eda_logger.error('Exception happened while processing column {}'.format(column))
+
+    try:
+        generate_plots_df('heatmap', df, 'df', plots_location)
+        generate_plots_df('correlation', df, 'df', plots_location)
+    except:
+        eda_logger.error('Exception happened while processing heatmap')
+        
 
 
 def main(args):

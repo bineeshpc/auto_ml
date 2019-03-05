@@ -41,13 +41,13 @@ def get_data_types(df):
         dtype = df[column].dtype
         if  dtype == 'float64' or dtype == 'int64':
             numerical.append(column)
-        elif dtype == 'object':
-            text.append(column)
+        elif column in config_parser.configuration.get_attribute('generate_datatypes', 'categorical'):
+            categorical.append(column)
         elif dtype == 'bool':
             bool_.append(column)
-        elif dtype == 'category':
-            categorical.append(column)
-
+        elif dtype == 'object':
+            text.append(column)
+        
     values = ['numerical',
     'categorical',
     'text',

@@ -6,7 +6,7 @@ Do the entire sequence of process one after the other.
 
 """
 
-from jobrunner import Command
+from jobrunner import Command, JobRunner
 import logger
 import argparse
 import config_parser
@@ -68,15 +68,20 @@ def main(args):
         arg_dict = config_parser.configuration.get_arguments(component)
         return arg_dict['run']
         
-
+    jr = JobRunner()
     for component in config_parser.configuration.get_components_ordered():
         src_location = config_parser.configuration.get_source_location()
         program = config_parser.configuration.get_attribute(component, 'program')
         arguments = get_arguments(component)
         command_string = '{}/{} {}'.format(src_location, program, arguments)
-        cmd = Command(command_string)
+        # cmd = Command(command_string)
         if should_run(component):
-            cmd.do()
+            jr.add_command(command_string)
+            if component == 'generate_datatypes':
+                jr.add_command('rm /tmp/competition/generate_datatypes/text.csv')
+                jr.add_command('touch /tmp/competition/generate_datatypes/text.csv')
+
+    jr.execute()
         
     
 if __name__ == "__main__":

@@ -1,10 +1,24 @@
 import yaml
 import os
 import utils
+import argparse
+
+def parse_cmdline():
+    parser = argparse.ArgumentParser(description='ConfigParser')
+    parser.add_argument('configfile',
+                        type=str,                    
+                        help='configfile',
+                        default='config.yml',
+                        nargs='?')
+    
+    args = parser.parse_args()
+    return args
+
 
 class ConfigParser:
-    def __init__(self):
-        stream = open('config.yml', 'r')
+    def __init__(self, configfile='config.yml'):
+        self.configfile = configfile
+        stream = open(self.configfile, 'r')
         self.configuration = yaml.load(stream)
 
     def get_directory(self, component):
@@ -37,7 +51,9 @@ class ConfigParser:
 
     def get_source_location(self):
         return self.configuration['src_location']
-configuration = ConfigParser()
+
+args = parse_cmdline()
+configuration = ConfigParser(args.configfile)
 # def generate_files():
 #     import os
 #     content = "#! /usr/bin/env python\n"
@@ -48,4 +64,5 @@ configuration = ConfigParser()
         
 # generate_files()
 if __name__ == "__main__":
+    
     configuration.print()
