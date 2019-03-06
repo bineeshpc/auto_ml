@@ -11,16 +11,15 @@ import os
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-eda_logger = logger.get_logger('exploratory data analysis',
-'exploratory_data_analysis' )
+
 def parse_cmdline():
     parser = argparse.ArgumentParser(description='exploratory data analysis in python')
     parser.add_argument('inputfile',
                         type=str,                    
                         help='Inputfile')
-    # parser.add_argument('outputfile',
-    #                     type=str,                    
-    #                     help='outputfile')
+    parser.add_argument('configfile',
+                         type=str,                    
+                         help='configfile')
     
     args = parser.parse_args()
     return args
@@ -75,8 +74,9 @@ def generate_plots_df(type_, df, name, plots_location):
     fig.savefig('{}/{}_{}.png'.format(plots_location, name, type_))
 
 
-def simple_analysis(df):
-    cnf = config_parser.configuration
+def simple_analysis(inputfile, configfile):
+    df = pd.read_csv(inputfile)
+    cnf = config_parser.get_configuration(configfile)
     plots_location = cnf.get_directory('exploratory_data_analysis')
 
     eda_logger.info(df.shape)
@@ -113,12 +113,13 @@ def simple_analysis(df):
 
 
 def main(args):
-    if args.inputfile:
-        df = pd.read_csv(args.inputfile)
-        simple_analysis(df)
+    simple_analysis(args.inputfile, args.configfile)
 
 
 
 if __name__ == "__main__":
     args = parse_cmdline()
+    eda_logger = logger.get_logger('exploratory data analysis',
+                                   'exploratory_data_analysis',
+                                   args.configfile)
     main(args)

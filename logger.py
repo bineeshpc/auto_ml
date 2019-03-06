@@ -15,8 +15,8 @@ def generate_directories(filename):
             pass
 
 
-def get_logger(name, location):
-    configuration = config_parser.configuration
+def get_logger(name, location, configfile):
+    configuration = config_parser.get_configuration(configfile)
     datageneratorlogfile = configuration.get_log_location(location)
     generate_directories(datageneratorlogfile)
     # create logger with 'insight data generation'

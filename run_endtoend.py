@@ -12,9 +12,6 @@ import argparse
 import config_parser
 import os
 
-run_endtoend_logger = logger.get_logger('run_endtoend',
-'run_endtoend' )
-
 
 def parse_cmdline():
     parser = argparse.ArgumentParser(description='run end to end')
@@ -43,8 +40,9 @@ def main(args):
     """
     commands = [
         ]
-    def get_arguments(component):
-        arg_dict = config_parser.configuration.get_arguments(component)
+    def get_arguments(component, configuration):
+        arg_dict = configuration.get_arguments(component)
+
         values = []
         if 'order' in arg_dict:
             for arg_ in arg_dict['order']:
@@ -57,34 +55,43 @@ def main(args):
             if location == 'None':
                 outs.append(value)
             else:
-                directory = config_parser.configuration.get_directory(location)
+                directory = configuration.get_directory(location)
                 val = os.path.join(directory, value)
                 outs.append(val)
                 
         return ' '.join(outs)
 
-    def should_run(component):
+    def should_run(component, configuration):
         
-        arg_dict = config_parser.configuration.get_arguments(component)
+        arg_dict = configuration.get_arguments(component)
         return arg_dict['run']
-        
+    
     jr = JobRunner()
-    for component in config_parser.configuration.get_components_ordered():
-        src_location = config_parser.configuration.get_source_location()
-        program = config_parser.configuration.get_attribute(component, 'program')
-        arguments = get_arguments(component)
+    configuration = config_parser.get_configuration(args.configfile)
+    
+    for component in configuration.get_components_ordered():
+        src_location = configuration.get_source_location()
+        program = configuration.get_attribute(component, 'program')
+        arguments = get_arguments(component, configuration)
         command_string = '{}/{} {}'.format(src_location, program, arguments)
         # cmd = Command(command_string)
-        if should_run(component):
+        if should_run(component, configuration):
+            run_endtoend_logger.info('addding command {}'.format(command_string))
             jr.add_command(command_string)
             if component == 'generate_datatypes':
-                jr.add_command('rm /tmp/competition/generate_datatypes/text.csv')
-                jr.add_command('touch /tmp/competition/generate_datatypes/text.csv')
+                dir_ = configuration.configuration['output_location']
+                jr.add_command('rm {}/generate_datatypes/text.csv'.format(dir_))
+                jr.add_command('touch {}/generate_datatypes/text.csv'.format(dir_))
 
     jr.execute()
         
     
 if __name__ == "__main__":
     args = parse_cmdline()
+    
+    run_endtoend_logger = logger.get_logger('run_endtoend',
+                                            'run_endtoend',
+                                            args.configfile)
+
     main(args)
 

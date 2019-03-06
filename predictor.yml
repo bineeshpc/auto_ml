@@ -3,9 +3,9 @@
 # every data goes under output_location
 # certain module level configurations are also possible
 
-output_location: &output_location /tmp/competition/
+output_location: &output_location /tmp/predictor
 src_location: /home/bineesh/Dropbox/competition/endtoend
-configfile : &configfile /home/bineesh/Dropbox/competition/endtoend/config.yml
+configfile : &configfile /home/bineesh/Dropbox/competition/endtoend/predictor.yml
 
 # generate graphs based on input data
 # generate figures as well as ipython notebooks
@@ -71,10 +71,10 @@ hyper_parameter_selector:
 
 # evaluator
 
-evaluator: 
-  program: evaluator.py
-  log_location: evaluator.log
-  directory: evaluator
+predictor: 
+  program: predictor.py
+  log_location: predictor.log
+  directory: predictor
   prediction_file: prediction.csv
 
 
@@ -92,7 +92,7 @@ run_endtoend:
     - feature_selector
     - model_selector
     - hyper_parameter_selector
-    - evaluator
+    - predictor
 
   exploratory_data_analysis:
     order: 
@@ -102,7 +102,7 @@ run_endtoend:
       - None
       - None
     run: no
-    input_file: titanic/train.csv
+    input_file: titanic/test.csv
     configfile: *configfile
 
   generate_datatypes:
@@ -112,8 +112,8 @@ run_endtoend:
     location:
       - None
       - None
-    run: no
-    X_train: titanic/train.csv
+    run: yes
+    X_train: titanic/test.csv
     configfile: *configfile
     
   transformer:
@@ -129,7 +129,7 @@ run_endtoend:
       - generate_datatypes
       - generate_datatypes
       - None
-    run: no
+    run: yes
     bool_: bool_.csv
     categorical: categorical.csv
     text: text.csv
@@ -149,7 +149,7 @@ run_endtoend:
       - transformer
       - transformer
       - None
-    run: no
+    run: yes
     bool_: bool_.csv
     categorical: categorical.csv
     text: text.csv
@@ -211,23 +211,23 @@ run_endtoend:
     X_train: X_train.csv
     y_train: y_train.csv
     
-  evaluator:
+  predictor:
     order:
       - X_test
-      - y_test
+      - y_column
       - winning_model
       - problem_type
       - configfile
     location:
-      - splitter
-      - splitter
-      - model_selector
+      - stacker
+      - None
+      - None
       - None
       - None
     run: yes
-    X_test: X_test.csv
-    y_test: y_test.csv
-    winning_model: winning_model.pkl
+    X_test: X_train.csv
+    y_column: Survived
+    winning_model: /tmp/competition/model_selector/winning_model.pkl
     problem_type: classification # can be classification or regression
     configfile: *configfile
     

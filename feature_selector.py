@@ -17,9 +17,6 @@ import os
 import pickle
 import shutil
 
-feature_selector_logger = logger.get_logger('feature_selector',
-'feature_selector' )
-
 
 def parse_cmdline():
     parser = argparse.ArgumentParser(description='model selector')
@@ -29,24 +26,27 @@ def parse_cmdline():
     parser.add_argument('y_train',
                         type=str,                    
                         help='y column value to predict')
+    parser.add_argument('configfile',
+                        type=str,                    
+                        help='configfile')
     
     args = parser.parse_args()
     return args
         
             
-def main(args):
-    directory = config_parser.configuration.get_directory('feature_selector')
+def main(X_train, y_train, configfile):
+    directory = config_parser.get_configuration(configfile).get_directory('feature_selector')
     
     def copy(src, directory):
         target = os.path.join(directory, os.path.basename(src))
         shutil.copyfile(src, target)
 
-    copy(args.X_train, directory)
-    copy(args.y_train, directory)
+    copy(X_train, directory)
+    copy(y_train, directory)
     
 
     
 
 if __name__ == "__main__":
     args = parse_cmdline()
-    main(args)
+    main(args.X_train, args.y_train, args.configfile)

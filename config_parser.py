@@ -52,17 +52,14 @@ class ConfigParser:
     def get_source_location(self):
         return self.configuration['src_location']
 
-args = parse_cmdline()
-configuration = ConfigParser(args.configfile)
-# def generate_files():
-#     import os
-#     content = "#! /usr/bin/env python\n"
-#     for k, v in y.items():
-#         with open(v, "w") as f:
-#             f.write(content)
-#         os.system('chmod u+x {}'.format(v))
-        
-# generate_files()
-if __name__ == "__main__":
+
+def get_configuration(configfile):
+    configuration = ConfigParser(configfile)
+    return configuration
     
+
+if __name__ == "__main__":
+
+    args = parse_cmdline()
+    configuration = ConfigParser(args.configfile)
     configuration.print()

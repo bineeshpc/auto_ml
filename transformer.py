@@ -18,9 +18,6 @@ import numpy as np
 import os
 from sklearn.preprocessing import LabelBinarizer, LabelEncoder
 
-transformers_logger = logger.get_logger('transformer',
-'transformer')
-
 def parse_cmdline():
     parser = argparse.ArgumentParser(description='Input directory')
     parser.add_argument('bool_',
@@ -35,6 +32,10 @@ def parse_cmdline():
     parser.add_argument('numerical',
                         type=str,                    
                         help='numerical type data')
+    parser.add_argument('configfile',
+                        type=str,                    
+                        help='configfile')
+
     args = parser.parse_args()
     return args
 
@@ -42,6 +43,7 @@ def transform(type_, df):
     if type_ == 'categorical':
         df1 = pd.DataFrame()
         for column in df.columns:
+            if column == 'Embarked': continue
             model = LabelEncoder()
             try:
                 result = model.fit_transform(df[column])
@@ -70,7 +72,7 @@ def main(args):
     dfs = [bool_, categorical, text, numerical]
 
     all_types = dict(zip(type_s, dfs))
-    directory = config_parser.configuration.get_directory('transformer')
+    directory = config_parser.get_configuration(args.configfile).get_directory('transformer')
     for type_, df in all_types.items():
             filename = '{}.csv'.format(type_)
             filename = os.path.join(directory, filename)
@@ -80,4 +82,9 @@ def main(args):
 
 if __name__ == "__main__":
     args = parse_cmdline()
+    
+    transformers_logger = logger.get_logger('transformer',
+                                            'transformer',
+                                            args.configfile)
+
     main(args)

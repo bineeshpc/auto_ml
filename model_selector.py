@@ -35,9 +35,6 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.naive_bayes import GaussianNB
 from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
 
-model_selector_logger = logger.get_logger('model_selector',
-'model_selector' )
-
 
 def parse_cmdline():
     parser = argparse.ArgumentParser(description='model selector')
@@ -47,7 +44,11 @@ def parse_cmdline():
     parser.add_argument('y',
                         type=str,                    
                         help='y column value to predict')
-    
+
+    parser.add_argument('configfile',
+                        type=str,                    
+                        help='Configfile')
+
     args = parser.parse_args()
     return args
 
@@ -167,8 +168,8 @@ class Classifier:
         self.create_pipeline(classifier, 'most_frequent')
         self.winning_model = self.pipeline.fit(self.X, self.y)
         
-    def save(self):
-        filename = config_parser.configuration.get_file_location('model_selector', 'model_filename')
+    def save(self, configuration):
+        filename = configuration.get_file_location('model_selector', 'model_filename')
         model_selector_logger.info('winning model is saved to {}'.format(filename))
         with open(filename, 'wb') as f:
             pickle.dump(self.winning_model, f)
@@ -241,8 +242,8 @@ class Regressor:
         self.create_pipeline(regressor, 'most_frequent')
         self.winning_model = self.pipeline.fit(self.X, self.y)
         
-    def save(self):
-        filename = config_parser.configuration.get_file_location('model_selector', 'model_filename')
+    def save(self, configuration):
+        filename = configuration.get_file_location('model_selector', 'model_filename')
         with open(filename, 'wb') as f:
             pickle.dump(self.winning_model, f)
         
@@ -252,8 +253,14 @@ def main(args):
         df = pd.read_csv(args.inputfile)
         df1 = pd.read_csv(args.y)
         model = ModelSelector().get_model('classification', df, df1)
-        model.save()
+        configuration = config_parser.get_configuration(args.configfile)
+        model.save(configuration)
 
 if __name__ == "__main__":
     args = parse_cmdline()
+    
+    model_selector_logger = logger.get_logger('model_selector',
+                                              'model_selector',
+                                              args.configfile)
+
     main(args)

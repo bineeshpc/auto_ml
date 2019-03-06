@@ -18,9 +18,6 @@ import pandas as pd
 import numpy as np
 import os
 
-transformers_logger = logger.get_logger('transformer',
-'transformer')
-
 def parse_cmdline():
     parser = argparse.ArgumentParser(description='Input directory')
     parser.add_argument('bool_',
@@ -35,6 +32,10 @@ def parse_cmdline():
     parser.add_argument('numerical',
                         type=str,                    
                         help='numerical type data')
+    parser.add_argument('configfile',
+                        type=str,                    
+                        help='Configfile')
+
     args = parser.parse_args()
     return args
 
@@ -88,7 +89,7 @@ def main(args):
 
     all_types = zip(type_s, file_s)
     
-    directory = config_parser.configuration.get_directory('stacker')
+    directory = config_parser.get_configuration(args.configfile).get_directory('stacker')
     filename = '{}.csv'.format('X_train')
     filename = os.path.join(directory, filename)
 
@@ -99,4 +100,9 @@ def main(args):
 
 if __name__ == "__main__":
     args = parse_cmdline()
+    
+    transformers_logger = logger.get_logger('transformer',
+                                            'transformer',
+                                            args.configfile)
+
     main(args)

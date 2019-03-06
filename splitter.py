@@ -17,8 +17,6 @@ import pandas as pd
 import numpy as np
 import os
 
-splitter_logger = logger.get_logger('splitter',
-'splitter' )
 
 def parse_cmdline():
     parser = argparse.ArgumentParser(description='exploratory data analysis in python')
@@ -28,7 +26,10 @@ def parse_cmdline():
     parser.add_argument('y_column',
                         type=str,                    
                         help='y column value to predict')
-    
+    parser.add_argument('configfile',
+                        type=str,                    
+                        help='Configfile')
+
     args = parser.parse_args()
     return args
 
@@ -57,7 +58,7 @@ def main(args):
         dfs = X_train, X_test, y_train, y_test
         names = ['X_train', 'X_test', 'y_train', 'y_test']
 
-        configuration = config_parser.configuration
+        configuration = config_parser.get_configuration(args.configfile)
         directory = configuration.get_directory('splitter')
         
         for name, df in zip(names, dfs):
@@ -68,4 +69,8 @@ def main(args):
 
 if __name__ == "__main__":
     args = parse_cmdline()
+    splitter_logger = logger.get_logger('splitter',
+                                        'splitter',
+                                        args.configfile)
+    
     main(args)
