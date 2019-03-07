@@ -141,7 +141,12 @@ class Classifier:
     'max_features': ['auto', 'sqrt', 'log2'],
     'max_depth' : [4,5,6,7,8],
     'criterion' :['gini', 'entropy']
-}
+            },
+            'AdaBoost': {"base_estimator__criterion" : ["gini", "entropy"],
+              "base_estimator__splitter" :   ["best", "random"],
+              "n_estimators": [1, 2]
+             }
+
             }
         self.grid = GridSearchCV(self.classifiers[model_name],
                             param_grid=self.hyper_params[model_name],
@@ -259,7 +264,7 @@ class Regressor:
 def main(args):
     df = pd.read_csv(args.inputfile)
     df1 = pd.read_csv(args.y)
-    model = ModelSelector().get_model('classification', df, df1, 'Neural Net')
+    model = ModelSelector().get_model('classification', df, df1, 'Random Forest')
     model.save(args.configfile)
 
 if __name__ == "__main__":

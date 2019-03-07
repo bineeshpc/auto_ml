@@ -130,7 +130,7 @@ run_endtoend:
       - generate_datatypes
       - generate_datatypes
       - None
-    run: no
+    run: yes
     bool_: bool_.csv
     categorical: categorical.csv
     text: text.csv
@@ -150,7 +150,7 @@ run_endtoend:
       - transformer
       - transformer
       - None
-    run: no
+    run: yes
     bool_: bool_.csv
     categorical: categorical.csv
     text: text.csv
@@ -167,7 +167,7 @@ run_endtoend:
       - stacker
       - None
       - None
-    run: no
+    run: yes
     input_file: X_train.csv 
     y_column: Survived
     configfile: *configfile
@@ -182,7 +182,7 @@ run_endtoend:
       - splitter
       - splitter
       - None
-    run: no
+    run: yes
     X_train: X_train.csv
     y_train: y_train.csv
     configfile: *configfile
@@ -196,7 +196,7 @@ run_endtoend:
       - feature_selector
       - feature_selector
       - None
-    run: no
+    run: yes
     X_train: X_train.csv
     y_train: y_train.csv
     configfile: *configfile

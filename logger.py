@@ -21,17 +21,17 @@ def get_logger(name, location, configfile):
     generate_directories(datageneratorlogfile)
     # create logger with 'insight data generation'
     logger = logging.getLogger(name)
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(logging.INFO)
     # create file handler which logs even debug messages
     fh = logging.FileHandler(datageneratorlogfile)
-    fh.setLevel(logging.DEBUG)
+    fh.setLevel(logging.INFO)
     # create console handler with a higher log level
     ch = logging.StreamHandler()
     ch.setLevel(logging.ERROR)
     #create a log rotation handler
     rh = logging.handlers.RotatingFileHandler(datageneratorlogfile,
                 maxBytes=5 * 1024 * 1024, backupCount=5)
-    rh.setLevel(logging.DEBUG)
+    rh.setLevel(logging.INFO)
     # create formatter and add it to the handlers
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     fh.setFormatter(formatter)
