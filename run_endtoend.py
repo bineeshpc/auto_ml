@@ -79,9 +79,10 @@ def main(args):
             run_endtoend_logger.info('addding command {}'.format(command_string))
             jr.add_command(command_string)
             if component == 'generate_datatypes':
+                # dirty hack, to be removed
                 dir_ = configuration.configuration['output_location']
-                jr.add_command('rm {}/generate_datatypes/text.csv'.format(dir_))
-                jr.add_command('touch {}/generate_datatypes/text.csv'.format(dir_))
+                # jr.add_command('rm {}/generate_datatypes/text.csv'.format(dir_))
+                # jr.add_command('touch {}/generate_datatypes/text.csv'.format(dir_))
 
     jr.execute()
         

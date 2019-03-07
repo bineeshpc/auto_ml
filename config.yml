@@ -20,6 +20,7 @@ splitter:
   program: splitter.py
   log_location: splitter.log
   directory: splitter
+  
 # Data can be of type numerical, categorical, text, image etc
 generate_datatypes: 
   program: generate_datatypes.py
@@ -204,12 +205,15 @@ run_endtoend:
     order:
       - X_train
       - y_train
+      - configfile
     location:
       - feature_selector
       - feature_selector
-    run: no
+      - None
+    run: yes
     X_train: X_train.csv
     y_train: y_train.csv
+    configfile: *configfile
     
   evaluator:
     order:

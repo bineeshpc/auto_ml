@@ -62,6 +62,7 @@ def main(X_test, y_column, model_file, problem_type, configfile):
 
     
     df1 = pd.read_csv(X_test)
+    # print(df1.isnull().any())
     with open(model_file, 'rb') as f:
         model = pickle.load(f)
     predictor(df1, y_column, model, problem_type, configfile)

@@ -25,7 +25,7 @@ from sklearn.pipeline import  Pipeline
 from sklearn.linear_model import Lasso, Ridge, BayesianRidge, SGDRegressor, LinearRegression
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import AdaBoostRegressor
-from sklearn.preprocessing import RobustScaler
+from sklearn.preprocessing import RobustScaler, StandardScaler
 
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
@@ -38,9 +38,6 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
 from sklearn.model_selection import GridSearchCV
 
-hyper_parameter_selector_logger = logger.get_logger('hyper_parameter_selector',
-'hyper_parameter_selector' )
-
 
 def parse_cmdline():
     parser = argparse.ArgumentParser(description='model selector')
@@ -50,6 +47,11 @@ def parse_cmdline():
     parser.add_argument('y',
                         type=str,                    
                         help='y column value to predict')
+
+    parser.add_argument('configfile',
+                        type=str,                    
+                        help='configfile')
+    
     
     args = parser.parse_args()
     return args
@@ -126,7 +128,20 @@ class Classifier:
             'RBF SVM': {
                 'C': np.logspace(-2, 10, 2),
                 'gamma': np.logspace(-9, 3, 2)
-                 }
+                 },
+             'Neural Net': {
+    # 'hidden_layer_sizes': [(50,50,50), (50,100,50), (2,)],
+    'activation': ['relu'],
+    'solver': ['adam'],
+    'alpha': [0.0001, 0.05],
+    'learning_rate': ['constant','adaptive'],
+             },
+            'Random Forest': { 
+    'n_estimators': [100, 200],
+    'max_features': ['auto', 'sqrt', 'log2'],
+    'max_depth' : [4,5,6,7,8],
+    'criterion' :['gini', 'entropy']
+}
             }
         self.grid = GridSearchCV(self.classifiers[model_name],
                             param_grid=self.hyper_params[model_name],
@@ -139,7 +154,7 @@ class Classifier:
         return 'imputer', SimpleImputer(missing_values=np.nan, strategy=strategy)
 
     def create_scaler(self):
-        return 'scaler', RobustScaler()
+        return 'scaler', StandardScaler()
 
     def create_classifier(self, classifier):
         return 'classifier', classifier
@@ -161,8 +176,8 @@ class Classifier:
       % (self.grid.best_params_, self.grid.best_score_))
 
         
-    def save(self):
-        filename = config_parser.configuration.get_file_location('hyper_parameter_selector', 'model_filename')
+    def save(self, configfile):
+        filename = config_parser.get_configuration(configfile).get_file_location('hyper_parameter_selector', 'model_filename')
         hyper_parameter_selector_logger.info('winning model is saved to {}'.format(filename))
         with open(filename, 'wb') as f:
             pickle.dump(self.winning_model, f)
@@ -235,8 +250,8 @@ class Regressor:
         self.create_pipeline(regressor, 'most_frequent')
         self.winning_model = self.pipeline.fit(self.X, self.y)
         
-    def save(self):
-        filename = config_parser.configuration.get_file_location('hyper_parameter_selector', 'model_filename')
+    def save(self, configfile):
+        filename = config_parser.get_configuration(configfile).get_file_location('hyper_parameter_selector', 'model_filename')
         with open(filename, 'wb') as f:
             pickle.dump(self.winning_model, f)
         
@@ -244,9 +259,14 @@ class Regressor:
 def main(args):
     df = pd.read_csv(args.inputfile)
     df1 = pd.read_csv(args.y)
-    model = ModelSelector().get_model('classification', df, df1, 'RBF SVM')
-    model.save()
+    model = ModelSelector().get_model('classification', df, df1, 'Neural Net')
+    model.save(args.configfile)
 
 if __name__ == "__main__":
     args = parse_cmdline()
+    hyper_parameter_selector_logger = logger.get_logger('hyper_parameter_selector',
+                                                        'hyper_parameter_selector',
+                                                        args.configfile)
+
+
     main(args)
