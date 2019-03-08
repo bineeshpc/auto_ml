@@ -228,6 +228,7 @@ run_endtoend:
     X_test: X_train.csv
     y_column: Survived
     winning_model: /tmp/competition/hyper_parameter_selector/winning_model.pkl
+    # winning_model: /tmp/competition/model_selector/winning_model.pkl
     problem_type: classification # can be classification or regression
     configfile: *configfile
     

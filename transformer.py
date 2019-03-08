@@ -16,6 +16,7 @@ import argparse
 import pandas as pd
 import numpy as np
 import os
+from exploratory_data_analysis import detect_outliers
 from sklearn.preprocessing import LabelBinarizer, LabelEncoder
 from sklearn.linear_model import LinearRegression
 from sklearn.pipeline import Pipeline
@@ -119,8 +120,8 @@ def replace_nan_transformer(df, column, value):
     """
     df1 = df.copy()
     df1[column] = df[column].fillna(value)
-            
     return df1
+
 
 def label_encoder_transformer(df, column):
     """ Encode the column of df with label encoder
@@ -194,6 +195,16 @@ def create_family_features(dataset):
     dataset['Large_Family'] = dataset['Family_Size'].map(lambda s: 1 if s >= 5 else 0)
     return dataset
 
+def drop_outliers(df, outliers):
+    """ Remove outliers given in iterable outliers
+    """
+    try:
+        df = df.drop(outliers, axis = 0).reset_index(drop=True)
+    except KeyError:
+        transformers_logger.info('{} not found in df'.format(outliers))
+    return df
+
+
 def main(args):
     def read_csv(location):
         try:
@@ -213,11 +224,21 @@ def main(args):
     all_types = dict(zip(type_s, dfs))
     directory = config_parser.get_configuration(args.configfile).get_directory('transformer')
     transformers_logger.info(directory)
+
+    if args.configfile != 'predictor.yml': # dirty hack, need not drop for prediction
+        outliers_indices = detect_outliers(numerical, ["Age","SibSp","Parch","Fare"], n=2) # remove if more than 2 outliers
+
     for type_, df in all_types.items():
         transformer = Transformer()
         filename = '{}.csv'.format(type_)
         filename = os.path.join(directory, filename)
         transformers_logger.info(type_)
+    
+        if args.configfile != 'predictor.yml': # dirty hack, need not drop for prediction
+            df = transformer.do_transformation('remove outliers', drop_outliers, (df, outliers_indices), {})
+            if type_ == 'text':
+                text_df = df # save this for age prediction task
+
         if type_ == 'bool_':
             df = transformer.do_transformation('identity transformer', (lambda x: x), (df,), {})
         elif type_ == 'categorical':
@@ -258,6 +279,7 @@ def main(args):
             (df, 'Fare', df['Fare'].median()), {})
             # need to use the generated column title to fill/complete the missing entries in age
             text_df = pd.read_csv(os.path.join(directory, 'text.csv'))
+            
             df = transformer.do_transformation('fill missing entries in age', fill_column, 
             (df, text_df, 'Age', StandardScaler(), LinearRegression()),
             {}

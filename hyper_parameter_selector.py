@@ -32,7 +32,7 @@ from sklearn.svm import SVC
 from sklearn.gaussian_process import GaussianProcessClassifier
 from sklearn.gaussian_process.kernels import RBF
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
+from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier, VotingClassifier, ExtraTreesClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.naive_bayes import GaussianNB
 from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
@@ -93,20 +93,27 @@ class Classifier:
                  "Neural Net",
                  "AdaBoost",
                  "Naive Bayes",
-                 "QDA"
+                 "QDA",
+                 "ExtraTrees",
+                 "Voting"
         ]
 
         classifiers = [
             KNeighborsClassifier(3),
             SVC(kernel="linear"),
-            SVC(),
+            SVC(probability=True),
             GaussianProcessClassifier(1.0 * RBF(1.0)),
             DecisionTreeClassifier(),
             RandomForestClassifier(),
             MLPClassifier(),
-            AdaBoostClassifier(),
+            AdaBoostClassifier(base_estimator=RandomForestClassifier()),
             GaussianNB(),
-            QuadraticDiscriminantAnalysis()
+            QuadraticDiscriminantAnalysis(),
+            ExtraTreesClassifier(),
+            VotingClassifier(estimators=[
+                ('clf', RandomForestClassifier()
+                )
+            ])
         ]
         
         self.classifiers = dict(zip(names, classifiers))
@@ -115,9 +122,9 @@ class Classifier:
         self.X = self.df.values
         self.y = self.df1.values.reshape(1, -1)[0]
 
-        self.create_pipeline(self.classifiers[model_name],
-                             'most_frequent'
-        )
+        #self.create_pipeline(self.classifiers[model_name],
+        #                     'most_frequent'
+        #)
         self.select_hyper_params(model_name)
         self.build_winning_model()
 
@@ -142,15 +149,79 @@ class Classifier:
     'max_depth' : [4,5,6,7,8],
     'criterion' :['gini', 'entropy']
             },
-            'AdaBoost': {"base_estimator__criterion" : ["gini", "entropy"],
-              "base_estimator__splitter" :   ["best", "random"],
-              "n_estimators": [1, 2]
-             }
+            
+            'AdaBoost': {
+                #"base_estimator__criterion" : ["gini", "entropy"],
+              #"base_estimator__splitter" :   ["best", "random"],
+              "algorithm" : ["SAMME","SAMME.R"],
+              "n_estimators" :[1,2,5,10,20],
+              "learning_rate":  [0.1, 0.2, 0.3,1.5]
+            },
+            'ExtraTrees': {
+            },
+            'Voting': {
+                "voting": ['soft', 'hard']
+                
+                }
 
             }
-        self.grid = GridSearchCV(self.classifiers[model_name],
+
+        self.grid = self.grid_search_cv(model_name)
+
+    def grid_search_cv(self, model_name):
+        voting = 'Voting'
+        
+        def get_params_for_pipeline(params):
+            p = {}
+            for key, value in params.items():
+                p_clf = {}
+                for key_ in value.keys():
+                    new_key = 'classifier__{}'.format(key_)
+                    p_clf[new_key] = value[key_]
+                p[key] = p_clf
+            return p
+        
+        param_grids = get_params_for_pipeline(self.hyper_params)
+        
+        if model_name == voting:
+            estimators = [
+                #"Nearest Neighbors",
+                # "Linear SVM",
+                 "RBF SVM",
+                # "Gaussian Process",
+                 #"Decision Tree",
+                 "Random Forest",
+                 "Neural Net",
+                 "AdaBoost",
+                 # "Naive Bayes",
+                 # "QDA",
+                 "ExtraTrees"
+            ]
+
+            
+            
+            estimators_ = []
+            for model_name_ in estimators:
+                # self.create_pipeline(self.classifiers[model_name_],
+                #             'most_frequent')
+                best_ = GridSearchCV(self.classifiers[model_name_],
+                            param_grid=self.hyper_params[model_name_],
+                             cv=5, scoring='accuracy')
+                estimators_.append((model_name_, best_))
+                
+            self.classifiers[model_name] = VotingClassifier(estimators_)
+            # self.create_pipeline(self.classifiers[model_name],
+            #                 'most_frequent')
+            return GridSearchCV(self.classifiers[model_name],
                             param_grid=self.hyper_params[model_name],
-                            cv=5)
+                             cv=5, scoring='accuracy')
+        
+        else:
+            # self.create_pipeline(self.classifiers[model_name],
+            #                 'most_frequent')
+            return GridSearchCV(self.classifiers[model_name],
+                            param_grid=self.hyper_params[model_name],
+                             cv=5, scoring='accuracy')
         
         
     def create_imputer(self, strategy):
@@ -264,7 +335,7 @@ class Regressor:
 def main(args):
     df = pd.read_csv(args.inputfile)
     df1 = pd.read_csv(args.y)
-    model = ModelSelector().get_model('classification', df, df1, 'Random Forest')
+    model = ModelSelector().get_model('classification', df, df1, 'Voting')
     model.save(args.configfile)
 
 if __name__ == "__main__":
