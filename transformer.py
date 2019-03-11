@@ -17,7 +17,7 @@ import pandas as pd
 import numpy as np
 import os
 from exploratory_data_analysis import detect_outliers
-from sklearn.preprocessing import LabelBinarizer, LabelEncoder
+from sklearn.preprocessing import LabelBinarizer, LabelEncoder, OneHotEncoder
 from sklearn.linear_model import LinearRegression
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import RobustScaler, StandardScaler
@@ -130,6 +130,14 @@ def label_encoder_transformer(df, column):
     model = LabelEncoder()
     result = model.fit_transform(df[column])
     df1[column] = result
+    return df1
+
+
+def one_hot_encoder_transformer(df, column):
+    """ Encode the column of df with label encoder
+    """
+    df1 = df.copy()
+    df1 = pd.get_dummies(df1, columns=[column])
     return df1
 
 def function_apply_transformer(df, function, column, new_column):
@@ -245,13 +253,13 @@ def main(args):
             df = transformer.do_transformation('replace nan of embarked column', replace_nan_transformer, 
             (df, 'Embarked', df['Embarked'].mode()[0]), {})
             for column_ in df.columns:
-                df = transformer.do_transformation('label encode transformer', label_encoder_transformer, 
+                df = transformer.do_transformation('one hot encoder transformer', one_hot_encoder_transformer, 
             (df, column_), {})
         elif type_ == 'text':
             df = transformer.do_transformation('extract title transformer', function_apply_transformer,
             (df, extract_title, 'Name', 'Title'),
             {})
-            df = transformer.do_transformation('label encode transformer', label_encoder_transformer, 
+            df = transformer.do_transformation('one hot encodef transformer', one_hot_encoder_transformer, 
             (df, 'Title'), {})
             
             df = transformer.do_transformation('Extract ticket info', 
@@ -264,9 +272,9 @@ def main(args):
             df = transformer.do_transformation('Extract Cabin info first letter', 
             function_apply_transformer, (df, (lambda x: x[0]), 'Cabin', 'Cabin_Modified'), {})
             
-            df = transformer.do_transformation('label encode transformer', label_encoder_transformer, 
+            df = transformer.do_transformation('label encoder transformer', label_encoder_transformer, 
             (df, 'Cabin_Modified'), {})
-            df = transformer.do_transformation('label encode transformer', label_encoder_transformer, 
+            df = transformer.do_transformation('label encoder transformer', label_encoder_transformer, 
             (df, 'Ticket_Modified'), {})
             
 

@@ -128,10 +128,14 @@ class Classifier:
         self.select_hyper_params(model_name)
         self.build_winning_model()
 
-        
+   
         
     def select_hyper_params(self, model_name):
         self.hyper_params = {
+            'Linear SVM': {
+                'C': np.logspace(-2, 10, 2),
+
+            },
             'RBF SVM': {
                 'C': np.logspace(-2, 10, 2),
                 'gamma': np.logspace(-9, 3, 2)
@@ -158,6 +162,8 @@ class Classifier:
               "learning_rate":  [0.1, 0.2, 0.3,1.5]
             },
             'ExtraTrees': {
+            },
+            'Naive Bayes': {
             },
             'Voting': {
                 "voting": ['soft', 'hard']
@@ -187,12 +193,12 @@ class Classifier:
             estimators = [
                 #"Nearest Neighbors",
                 # "Linear SVM",
-                 "RBF SVM",
+                # "RBF SVM",
                 # "Gaussian Process",
                  #"Decision Tree",
                  "Random Forest",
                  "Neural Net",
-                 "AdaBoost",
+                  "AdaBoost",
                  # "Naive Bayes",
                  # "QDA",
                  "ExtraTrees"
