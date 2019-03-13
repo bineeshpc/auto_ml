@@ -46,7 +46,7 @@ def split_(df, y_column):
         print('trying without stratify')
         X_train, X_test, y_train, y_test = train_test_split(df1, 
         y_column_df,
-         test_size=.2
+         test_size=.03
         )
 
     return X_train, X_test, y_train, y_test

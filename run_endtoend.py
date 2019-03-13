@@ -11,7 +11,7 @@ import logger
 import argparse
 import config_parser
 import os
-
+import sys
 
 def parse_cmdline():
     parser = argparse.ArgumentParser(description='run end to end')
@@ -84,7 +84,10 @@ def main(args):
                 # jr.add_command('rm {}/generate_datatypes/text.csv'.format(dir_))
                 # jr.add_command('touch {}/generate_datatypes/text.csv'.format(dir_))
 
-    jr.execute()
+    if jr.execute() == 0:
+        sys.exit(0)
+    else:
+        sys.exit(1)
         
     
 if __name__ == "__main__":

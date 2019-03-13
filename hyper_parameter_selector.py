@@ -199,9 +199,9 @@ class Classifier:
                  "Random Forest",
                  "Neural Net",
                   "AdaBoost",
-                 # "Naive Bayes",
+                 #"Naive Bayes",
                  # "QDA",
-                 "ExtraTrees"
+                 # "ExtraTrees"
             ]
 
             

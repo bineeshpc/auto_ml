@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 
 import subprocess 
+import sys
 
 class Command:
     def __init__(self, cmd, undo_cmd=None):
@@ -29,14 +30,17 @@ class JobRunner:
     def add_command(self, cmd_string):
         self.commands.append(Command(cmd_string))
 
-    def execute(self, stop_on_error=False):
+    def execute(self, stop_on_error=True):
         for cmd in self.commands:
             try:
                 cmd.do()
                 if cmd.output.returncode != 0:
-                    break
+                    if stop_on_error:
+                        return 1
+                    
             except:
                 break
+        return 0
         
         
 
