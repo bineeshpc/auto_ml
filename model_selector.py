@@ -45,6 +45,9 @@ def parse_cmdline():
                         type=str,                    
                         help='y column value to predict')
 
+    parser.add_argument('problem_type', 
+    type=str,
+    help='problem type can be classification or regression')
     parser.add_argument('configfile',
                         type=str,                    
                         help='Configfile')
@@ -206,7 +209,8 @@ class Regressor:
             if mean_ < min_:
                 min_regressor = regressor_name
                 min_ = mean_
-        print(min_regressor, mean_)
+        
+        print('The winning model is {} with a score of {}'.format(min_regressor, mean_))
         self.build_winning_model(min_regressor)
         
 
@@ -252,7 +256,7 @@ def main(args):
     if args.inputfile:
         df = pd.read_csv(args.inputfile)
         df1 = pd.read_csv(args.y)
-        model = ModelSelector().get_model('classification', df, df1)
+        model = ModelSelector().get_model(args.problem_type, df, df1)
         configuration = config_parser.get_configuration(args.configfile)
         model.save(configuration)
 

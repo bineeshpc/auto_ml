@@ -3,7 +3,7 @@
 # every data goes under output_location
 # certain module level configurations are also possible
 
-output_location: &output_location /tmp/competition/
+output_location: &output_location /tmp/house-prices-advanced-regression-techniques
 src_location: /home/bineesh/Dropbox/competition/endtoend
 configfile : &configfile /home/bineesh/Dropbox/competition/endtoend/config.yml
 
@@ -103,7 +103,7 @@ run_endtoend:
       - None
       - None
     run: no
-    input_file: titanic/train.csv
+    input_file: house-prices-advance-regression-techniques/train.csv
     configfile: *configfile
 
   generate_datatypes:
@@ -113,8 +113,8 @@ run_endtoend:
     location:
       - None
       - None
-    run: no
-    X_train: titanic/train.csv
+    run: yes
+    X_train: house-prices-advance-regression-techniques/train.csv
     configfile: *configfile
     
   transformer:
@@ -169,7 +169,7 @@ run_endtoend:
       - None
     run: yes
     input_file: X_train.csv 
-    y_column: Survived
+    y_column: SalePrice
     configfile: *configfile
 
 
@@ -191,28 +191,34 @@ run_endtoend:
     order:
       - X_train
       - y_train
+      - problemtype
       - configfile
     location:
       - feature_selector
       - feature_selector
       - None
+      - None
     run: yes
     X_train: X_train.csv
     y_train: y_train.csv
+    problemtype: regression
     configfile: *configfile
 
   hyper_parameter_selector:
     order:
       - X_train
       - y_train
+      - problem_type
       - configfile
     location:
       - feature_selector
       - feature_selector
       - None
-    run: yes
+      - None
+    run: no
     X_train: X_train.csv
     y_train: y_train.csv
+    problem_type: regression
     configfile: *configfile
     
   evaluator:
@@ -232,6 +238,6 @@ run_endtoend:
     X_test: X_test.csv
     y_test: y_test.csv
     winning_model: winning_model.pkl
-    problem_type: classification # can be classification or regression
+    problem_type: regression # can be classification or regression
     configfile: *configfile
     

@@ -3,7 +3,7 @@
 # every data goes under output_location
 # certain module level configurations are also possible
 
-output_location: &output_location /tmp/predictor
+output_location: &output_location /tmp/house-prices-advanced-regression-techniques-predictor
 src_location: /home/bineesh/Dropbox/competition/endtoend
 configfile : &configfile /home/bineesh/Dropbox/competition/endtoend/predictor.yml
 
@@ -102,7 +102,7 @@ run_endtoend:
       - None
       - None
     run: no
-    input_file: titanic/test.csv
+    input_file: house-prices-advanced-regression-techniques/test.csv
     configfile: *configfile
 
   generate_datatypes:
@@ -113,7 +113,7 @@ run_endtoend:
       - None
       - None
     run: yes
-    X_train: titanic/test.csv
+    X_train: house-prices-advance-regression-techniques/test.csv
     configfile: *configfile
     
   transformer:
@@ -168,7 +168,7 @@ run_endtoend:
       - None
     run: no
     input_file: X_train.csv 
-    y_column: Survived
+    y_column: SalePrice
     configfile: *configfile
 
 
@@ -190,7 +190,24 @@ run_endtoend:
     order:
       - X_train
       - y_train
+      - problem_type
       - configfile
+    location:
+      - feature_selector
+      - feature_selector
+      - None
+      - None
+    run: no
+    X_train: X_train.csv
+    y_train: y_train.csv
+    problem_type: regression
+    configfile: *configfile
+
+  hyper_parameter_selector:
+    order:
+      - X_train
+      - y_train
+      - problem_type
     location:
       - feature_selector
       - feature_selector
@@ -198,19 +215,8 @@ run_endtoend:
     run: no
     X_train: X_train.csv
     y_train: y_train.csv
-    configfile: *configfile
+    problem_type: regression
 
-  hyper_parameter_selector:
-    order:
-      - X_train
-      - y_train
-    location:
-      - feature_selector
-      - feature_selector
-    run: no
-    X_train: X_train.csv
-    y_train: y_train.csv
-    
   predictor:
     order:
       - X_test
@@ -226,9 +232,10 @@ run_endtoend:
       - None
     run: yes
     X_test: X_train.csv
-    y_column: Survived
-    winning_model: /tmp/competition/hyper_parameter_selector/winning_model.pkl
+    y_column: SalePrice
+    winning_model: /tmp/house-prices-advanced-regression-techniques/model_selector/winning_model.pkl
+    #winning_model: /tmp/competition/hyper_parameter_selector/winning_model.pkl
     # winning_model: /tmp/competition/model_selector/winning_model.pkl
-    problem_type: classification # can be classification or regression
+    problem_type: regression # can be classification or regression
     configfile: *configfile
     

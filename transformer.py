@@ -99,17 +99,22 @@ def main(args):
     dfs = [bool_, categorical, text, numerical]
 
     all_types = dict(zip(type_s, dfs))
-    
-    if args.configfile != 'predictor.yml': # dirty hack, need not drop for prediction
-        outliers_indices = detect_outliers(numerical, ["Age","SibSp","Parch","Fare"], n=2) # remove if more than 2 outliers
+    dataset = 'houseprices'
 
-    import titanic 
+    if args.configfile != 'predictor.yml': # dirty hack, need not drop for prediction
+        if dataset == 'titanic':
+            outliers_indices = detect_outliers(numerical, 
+            ["Age", "SibSp", "Parch", "Fare"], n=2) # remove if more than 2 outliers
+
+    import titanic
+    import houseprices
     # imported here to avoid initialization problems
     # especially pickle_filename should be initialized before importing
-    transform_bool = titanic.transform_bool
-    transform_categorical = titanic.transform_categorical
-    transform_text = titanic.transform_text
-    transform_numerical = titanic.transform_numerical
+    
+    transform_bool = getattr(locals()[dataset], 'transform_bool')
+    transform_categorical = getattr(locals()[dataset], 'transform_categorical')
+    transform_text = getattr(locals()[dataset], 'transform_text')
+    transform_numerical = getattr(locals()[dataset], 'transform_numerical')
 
     for type_, df in all_types.items():
         transformer = Transformer()
@@ -121,7 +126,8 @@ def main(args):
         transformers_logger.info(type_)
     
         if args.configfile != 'predictor.yml': # dirty hack, need not drop for prediction
-            df = transformer.do_transformation('remove outliers', titanic.drop_outliers, (df, outliers_indices), {})
+            if dataset == 'titanic':
+                df = transformer.do_transformation('remove outliers', titanic.drop_outliers, (df, outliers_indices), {})
 
         df = transform_bool(type_, df)
         df = transform_categorical(type_, df)

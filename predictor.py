@@ -47,9 +47,9 @@ def parse_cmdline():
 def predictor(X, y_column, model, problem_type, configfile):
     X_test = X.values
     y_pred = model.predict(X_test)
-    df1 = pd.read_csv('titanic/test.csv')
-    passenger_id = 'PassengerId'
-    df = pd.DataFrame({passenger_id:df1[passenger_id], y_column : y_pred})
+    df1 = pd.read_csv('house-prices-advance-regression-techniques/test.csv')
+    id_ = 'Id'
+    df = pd.DataFrame({id_:df1[id_], y_column : y_pred})
     prediction_file = config_parser.get_configuration(configfile).get_file_location('predictor', 'prediction_file')
     df.to_csv(prediction_file, index=False)
     
