@@ -336,6 +336,12 @@ class Regressor:
         self.create_pipeline(regressor, 'most_frequent')
         self.winning_model = self.pipeline.fit(self.X, self.y)
         
+    def select_hyper_params(self):
+        pass
+
+    def grid_search_cv(self):
+        pass
+        
     def save(self, configfile):
         filename = config_parser.get_configuration(configfile).get_file_location('hyper_parameter_selector', 'model_filename')
         with open(filename, 'wb') as f:

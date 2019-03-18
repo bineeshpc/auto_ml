@@ -259,6 +259,12 @@ outliers_df""".format(outliers_info)
         outliers_df = pd.DataFrame(outliers_info).sort_values(['outliers_rate'], ascending=False)
         eda_logger.info(outliers_df)
         cells.append(nbf.v4.new_code_cell(code_))
+
+        code_ = """negative_numbers_ratio = utils.get_negative_numbers_ratio(numerical_df)
+negative_numbers_ratio"""
+        negative_numbers_ratio = utils.get_negative_numbers_ratio(numerical_df)
+        eda_logger.info(negative_numbers_ratio)
+        cells.append(nbf.v4.new_code_cell(code_))
     except Exception as e:
         eda_logger.error('Exception happened while processing heatmap')
         print(e)

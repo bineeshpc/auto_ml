@@ -44,6 +44,17 @@ stacker:
   log_location: stacker.log
   directory: stacker
 
+
+# Some transformations can only be done using full data
+# and not with data split based on types
+# do those transformations after stacker step
+
+post_stacker_transformer: 
+  program: post_stacker_transformer.py
+  log_location: post_stacker_transformer.log
+  directory: post_stacker_transformer
+
+
 # Feature selector can select features after the stacking step
 
 feature_selector: 
@@ -89,6 +100,7 @@ run_endtoend:
     - generate_datatypes
     - transformer
     - stacker
+    - post_stacker_transformer
     - splitter
     - feature_selector
     - model_selector
@@ -157,6 +169,17 @@ run_endtoend:
     numerical: numerical.csv
     configfile: *configfile
 
+  post_stacker_transformer:
+    order:
+      - X_train
+      - configfile
+    location:
+      - stacker
+      - None
+    run: yes
+    X_train: X_train.csv
+    configfile: *configfile
+
 
   splitter:
     order:
@@ -164,7 +187,7 @@ run_endtoend:
       - y_column
       - configfile
     location:
-      - stacker
+      - post_stacker_transformer
       - None
       - None
     run: yes
@@ -234,10 +257,10 @@ run_endtoend:
       - model_selector
       - None
       - None
-    run: yes
+    run: no
     X_test: X_test.csv
     y_test: y_test.csv
     winning_model: winning_model.pkl
     problem_type: regression # can be classification or regression
     configfile: *configfile
-    
+ 

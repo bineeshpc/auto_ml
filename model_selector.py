@@ -186,10 +186,10 @@ class Regressor:
         ('linear_regression', LinearRegression()),
         ('lasso', Lasso(alpha=.5)),
         ('ridge', Ridge(alpha=.5)),
-        ('bayesian_ridge', BayesianRidge()),
-        ('adaboost_regressor', AdaBoostRegressor(DecisionTreeRegressor(max_depth=4),
-                                  n_estimators=300, random_state=42)),
-        ('sgd_regressor', SGDRegressor())
+        #('bayesian_ridge', BayesianRidge()),
+        #('adaboost_regressor', AdaBoostRegressor(DecisionTreeRegressor(max_depth=4),
+        #                          n_estimators=300, random_state=42)),
+        #('sgd_regressor', SGDRegressor())
         ]
         
         self.df = df

@@ -127,13 +127,15 @@ def main(args):
     
         if args.configfile != 'predictor.yml': # dirty hack, need not drop for prediction
             if dataset == 'titanic':
-                df = transformer.do_transformation('remove outliers', titanic.drop_outliers, (df, outliers_indices), {})
+                df = transformer.do_transformation('remove outliers',
+                 titanic.drop_outliers,
+                  (df, outliers_indices),
+                   {})
 
         df = transform_bool(type_, df)
         df = transform_categorical(type_, df)
         df = transform_text(type_, df)
         df = transform_numerical(type_, df)
-
         df.to_csv(filename, index=False)
 
 

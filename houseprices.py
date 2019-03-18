@@ -531,6 +531,7 @@ import logger
 import utils
 from exploratory_data_analysis import detect_outliers
 import config_parser
+import scipy
 from sklearn.preprocessing import LabelBinarizer, LabelEncoder, OneHotEncoder
 from sklearn.linear_model import LinearRegression
 from sklearn.pipeline import Pipeline
@@ -540,158 +541,195 @@ from transformer import Transformer
 filename = '/tmp/arguments.pkl'
 args = utils.load(filename)
 
-def extract_title(x):
-    d = dict(Mlle='Miss',
-            Ms='Miss',
-            Mme='Mrs')
-    for i in ['Lady', 'the Countess','Countess','Capt',
-     'Col','Don', 'Dr', 'Major', 'Rev', 'Sir', 'Jonkheer', 'Dona']:
-     d[i] = 'Rare'
 
-    a = x.split(',')[1].split('.')[0].strip()
-    if a in d.keys():
-        a = d[a]
-    return a
-
-def combine_df_same_length(df1, df2):
-    length = len(df2)
-    d = dict([(i, [])for i in df1.columns])
-    for column_ in df2.columns:
-        d[column_] = []
-    for i in range(length):
-        for column_ in df1.columns:
-            d[column_].append(df1[column_][i])
-        for column_ in df2.columns:
-            d[column_].append(df2[column_][i])
-    df3 = pd.DataFrame(d)
-    return df3
-    
-
-def recreate_df(df3, good_values_df, filled_values_df, c_id):
-    x = df3[c_id] == df3.index + 1
-    df4 = df3.set_index(c_id)
-    df5 = good_values_df.set_index(c_id)
-    df6 = filled_values_df.set_index(c_id)
-    df7 = pd.concat([df5['Age'], df5['Age']])
-    #df8 = df3['Age'] = df7
-    df7.index = range(len(df7))
-    # print(df7.index)
-    # print(df3.index)
-    df3['Age'] = df7
-    return df3
-    
-                
-               
-
-def replace_nan_transformer(df, column, value):
-    """ Replace nan of column with value
-    """
-    df1 = df.copy()
-    df1[column] = df[column].fillna(value)
-    return df1
+transformers_logger = logger.get_logger('transformer',
+                                          'transformer',
+                                          args.configfile)
 
 
-def label_encoder_transformer(df, column):
-    """ Encode the column of df with label encoder
-    """
-    df1 = df.copy()
-    model = LabelEncoder()
-    result = model.fit_transform(df[column])
-    df1[column] = result
-    return df1
+def encode_features(train):
+    # Encode some categorical features as ordered numbers when there is information in the order
+    train = train.replace({"Alley" : {"No": 0, "Grvl" : 1, "Pave" : 2},
+                        "BsmtCond" : {"No" : 0, "Po" : 1, "Fa" : 2, "TA" : 3, "Gd" : 4, "Ex" : 5},
+                        "BsmtExposure" : {"No" : 0, "Mn" : 1, "Av": 2, "Gd" : 3},
+                        "BsmtFinType1" : {"No" : 0, "Unf" : 1, "LwQ": 2, "Rec" : 3, "BLQ" : 4, 
+                                            "ALQ" : 5, "GLQ" : 6},
+                        "BsmtFinType2" : {"No" : 0, "Unf" : 1, "LwQ": 2, "Rec" : 3, "BLQ" : 4, 
+                                            "ALQ" : 5, "GLQ" : 6},
+                        "BsmtQual" : {"No" : 0, "Po" : 1, "Fa" : 2, "TA": 3, "Gd" : 4, "Ex" : 5},
+                        "ExterCond" : {"Po" : 1, "Fa" : 2, "TA": 3, "Gd": 4, "Ex" : 5},
+                        "ExterQual" : {"Po" : 1, "Fa" : 2, "TA": 3, "Gd": 4, "Ex" : 5},
+                        "FireplaceQu" : {"No" : 0, "Po" : 1, "Fa" : 2, "TA" : 3, "Gd" : 4, "Ex" : 5},
+                        "Functional" : {"Sal" : 1, "Sev" : 2, "Maj2" : 3, "Maj1" : 4, "Mod": 5, 
+                                        "Min2" : 6, "Min1" : 7, "Typ" : 8},
+                        "GarageCond" : {"No" : 0, "Po" : 1, "Fa" : 2, "TA" : 3, "Gd" : 4, "Ex" : 5},
+                        "GarageQual" : {"No" : 0, "Po" : 1, "Fa" : 2, "TA" : 3, "Gd" : 4, "Ex" : 5},
+                        "HeatingQC" : {"Po" : 1, "Fa" : 2, "TA" : 3, "Gd" : 4, "Ex" : 5},
+                        "KitchenQual" : {"Po" : 1, "Fa" : 2, "TA" : 3, "Gd" : 4, "Ex" : 5},
+                        "LandSlope" : {"Sev" : 1, "Mod" : 2, "Gtl" : 3},
+                        "LotShape" : {"IR3" : 1, "IR2" : 2, "IR1" : 3, "Reg" : 4},
+                        "PavedDrive" : {"N" : 0, "P" : 1, "Y" : 2},
+                        "PoolQC" : {"No" : 0, "Fa" : 1, "TA" : 2, "Gd" : 3, "Ex" : 4},
+                        "Street" : {"Grvl" : 1, "Pave" : 2},
+                        "Utilities" : {"ELO" : 1, "NoSeWa" : 2, "NoSewr" : 3, "AllPub" : 4}}
+                        )
+    return train
 
+# https://www.kaggle.com/juliencs/a-study-on-regression-applied-to-the-ames-dataset
+# https://www.kaggle.com/serigne/stacked-regressions-top-4-on-leaderboard
 
-def one_hot_encoder_transformer(df, column):
-    """ Encode the column of df with label encoder
-    """
-    df1 = df.copy()
-    df1 = pd.get_dummies(df1, columns=[column])
-    return df1
+# Then we will create new features, in 3 ways :
 
-def function_apply_transformer(df, function, column, new_column):
-    """ Apply function to df on column delete the column and 
-    the result will be named as a new_column 
-    """
-    df1 = df.copy()
-    extracted = df[column].apply(function)
-    df1.drop(column, axis='columns')
-    df1[new_column] = extracted
-    return df1
+# Simplifications of existing features
+# Combinations of existing features
+# Polynomials on the top 10 existing features
 
-def drop_columns(df, columns):
-    return df.drop(columns, axis='columns')
-    
+def create_new_features(train):
+    # Create new features
+    # 1* Simplifications of existing features
+    train["SimplOverallQual"] = train.OverallQual.replace({1 : 1, 2 : 1, 3 : 1, # bad
+                                                        4 : 2, 5 : 2, 6 : 2, # average
+                                                        7 : 3, 8 : 3, 9 : 3, 10 : 3 # good
+                                                        })
+    train["SimplOverallCond"] = train.OverallCond.replace({1 : 1, 2 : 1, 3 : 1, # bad
+                                                        4 : 2, 5 : 2, 6 : 2, # average
+                                                        7 : 3, 8 : 3, 9 : 3, 10 : 3 # good
+                                                        })
+    train["SimplPoolQC"] = train.PoolQC.replace({1 : 1, 2 : 1, # average
+                                                3 : 2, 4 : 2 # good
+                                                })
+    train["SimplGarageCond"] = train.GarageCond.replace({1 : 1, # bad
+                                                        2 : 1, 3 : 1, # average
+                                                        4 : 2, 5 : 2 # good
+                                                        })
+    train["SimplGarageQual"] = train.GarageQual.replace({1 : 1, # bad
+                                                        2 : 1, 3 : 1, # average
+                                                        4 : 2, 5 : 2 # good
+                                                        })
+    train["SimplFireplaceQu"] = train.FireplaceQu.replace({1 : 1, # bad
+                                                        2 : 1, 3 : 1, # average
+                                                        4 : 2, 5 : 2 # good
+                                                        })
+    train["SimplFireplaceQu"] = train.FireplaceQu.replace({1 : 1, # bad
+                                                        2 : 1, 3 : 1, # average
+                                                        4 : 2, 5 : 2 # good
+                                                        })
+    train["SimplFunctional"] = train.Functional.replace({1 : 1, 2 : 1, # bad
+                                                        3 : 2, 4 : 2, # major
+                                                        5 : 3, 6 : 3, 7 : 3, # minor
+                                                        8 : 4 # typical
+                                                        })
+    train["SimplKitchenQual"] = train.KitchenQual.replace({1 : 1, # bad
+                                                        2 : 1, 3 : 1, # average
+                                                        4 : 2, 5 : 2 # good
+                                                        })
+    train["SimplHeatingQC"] = train.HeatingQC.replace({1 : 1, # bad
+                                                    2 : 1, 3 : 1, # average
+                                                    4 : 2, 5 : 2 # good
+                                                    })
+    train["SimplBsmtFinType1"] = train.BsmtFinType1.replace({1 : 1, # unfinished
+                                                            2 : 1, 3 : 1, # rec room
+                                                            4 : 2, 5 : 2, 6 : 2 # living quarters
+                                                            })
+    train["SimplBsmtFinType2"] = train.BsmtFinType2.replace({1 : 1, # unfinished
+                                                            2 : 1, 3 : 1, # rec room
+                                                            4 : 2, 5 : 2, 6 : 2 # living quarters
+                                                            })
+    train["SimplBsmtCond"] = train.BsmtCond.replace({1 : 1, # bad
+                                                    2 : 1, 3 : 1, # average
+                                                    4 : 2, 5 : 2 # good
+                                                    })
+    train["SimplBsmtQual"] = train.BsmtQual.replace({1 : 1, # bad
+                                                    2 : 1, 3 : 1, # average
+                                                    4 : 2, 5 : 2 # good
+                                                    })
+    train["SimplExterCond"] = train.ExterCond.replace({1 : 1, # bad
+                                                    2 : 1, 3 : 1, # average
+                                                    4 : 2, 5 : 2 # good
+                                                    })
+    train["SimplExterQual"] = train.ExterQual.replace({1 : 1, # bad
+                                                    2 : 1, 3 : 1, # average
+                                                    4 : 2, 5 : 2 # good
+                                                    })
+    return train
 
+                                                    
 
-def fill_column(df, text_df, column, scaler, regressor):
-    """ column of df is predicted using text_df and a regressor
-    """
-    df1 = df.copy()
-    df3 = combine_df_same_length(df, text_df)
-    null_values_df = df3[df3[column].isnull()]
-    good_values_df = df3[df3[column].isnull() != True]
-    # print(null_values_df.shape)
-    # print(good_values_df.shape)
-    # print(df3.shape)
-    # print(good_values_df.columns, column)
-    
-    X_train = good_values_df.drop(column, axis='columns').values
-    y_train = good_values_df[column].values.reshape(-1, 1)
-    # print(X_train.shape)
-    # print(y_train.shape)
-    steps = [('scaler', scaler),
-                ('regressor', regressor)
-            ]
-    pipeline = Pipeline(steps)
-    model = pipeline.fit(X_train, y_train)
-    X_test = null_values_df.drop(column, axis='columns').values
-    y_pred = model.predict(X_test)
+def combinations_of_features(train):
+        
+    # 2* Combinations of existing features
+    # Overall quality of the house
+    train["OverallGrade"] = train["OverallQual"] * train["OverallCond"]
+    # Overall quality of the garage
+    train["GarageGrade"] = train["GarageQual"] * train["GarageCond"]
+    # Overall quality of the exterior
+    train["ExterGrade"] = train["ExterQual"] * train["ExterCond"]
+    # Overall kitchen score
+    train["KitchenScore"] = train["KitchenAbvGr"] * train["KitchenQual"]
+    # Overall fireplace score
+    train["FireplaceScore"] = train["Fireplaces"] * train["FireplaceQu"]
+    # Overall garage score
+    train["GarageScore"] = train["GarageArea"] * train["GarageQual"]
+    # Overall pool score
+    train["PoolScore"] = train["PoolArea"] * train["PoolQC"]
+    # Simplified overall quality of the house
+    train["SimplOverallGrade"] = train["SimplOverallQual"] * train["SimplOverallCond"]
+    # Simplified overall quality of the exterior
+    train["SimplExterGrade"] = train["SimplExterQual"] * train["SimplExterCond"]
+    # Simplified overall pool score
+    train["SimplPoolScore"] = train["PoolArea"] * train["SimplPoolQC"]
+    # Simplified overall garage score
+    train["SimplGarageScore"] = train["GarageArea"] * train["SimplGarageQual"]
+    # Simplified overall fireplace score
+    train["SimplFireplaceScore"] = train["Fireplaces"] * train["SimplFireplaceQu"]
+    # Simplified overall kitchen score
+    train["SimplKitchenScore"] = train["KitchenAbvGr"] * train["SimplKitchenQual"]
+    # Total number of bathrooms
+    train["TotalBath"] = train["BsmtFullBath"] + (0.5 * train["BsmtHalfBath"]) + \
+    train["FullBath"] + (0.5 * train["HalfBath"])
+    # Total SF for house (incl. basement)
+    train["AllSF"] = train["GrLivArea"] + train["TotalBsmtSF"]
+    # Total SF for 1st + 2nd floors
+    train["AllFlrsSF"] = train["1stFlrSF"] + train["2ndFlrSF"]
+    # Total SF for porch
+    train["AllPorchSF"] = train["OpenPorchSF"] + train["EnclosedPorch"] + \
+    train["3SsnPorch"] + train["ScreenPorch"]
+    return train
 
-    filled_values_df = null_values_df.copy()
-    filled_values_df[column] = y_pred
-    df4 = recreate_df(df3, good_values_df, filled_values_df, 'PassengerId')
-    df1[column] = df4[column]
-    return df1
-    
-def ticket_modifier(x):
-    y = x.split()
-    if len(y) > 1:
-        return y[0].replace('/', '').replace('.', '').strip()
-    else:
-        return 'X'
-
-def create_family_size(df, column_formed, column_1, column_2):
-    df[column_formed] = df[column_1] + df[column_2] + 1
-    return df
-
-def create_family_features(dataset):
-    dataset['Single'] = dataset['Family_Size'].map(lambda s: 1 if s == 1 else 0)
-    dataset['Small_Family'] = dataset['Family_Size'].map(lambda s: 1 if  s == 2  else 0)
-    dataset['Medium_Family'] = dataset['Family_Size'].map(lambda s: 1 if 3 <= s <= 4 else 0)
-    dataset['Large_Family'] = dataset['Family_Size'].map(lambda s: 1 if s >= 5 else 0)
-    return dataset
-
-def create_age_features(dataset):
-    dataset.loc[ dataset['Age'] <= 10, 'Age'] = 0
-    dataset.loc[(dataset['Age'] > 10) & (dataset['Age'] <= 18), 'Age'] = 1
-    dataset.loc[(dataset['Age'] > 18) & (dataset['Age'] <= 35), 'Age'] = 2
-    dataset.loc[(dataset['Age'] > 35) & (dataset['Age'] <= 50), 'Age'] = 3
-    dataset.loc[(dataset['Age'] > 50) & (dataset['Age'] <= 65), 'Age'] = 4
-    dataset.loc[ dataset['Age'] > 65, 'Age'] = 5
-    dataset['Age_Categories'] = dataset['Age'].astype('int')
-    return dataset
-
-
-def drop_outliers(df, outliers):
-    """ Remove outliers given in iterable outliers
-    """
-    try:
-        df = df.drop(outliers, axis = 0).reset_index(drop=True)
-    except KeyError:
-        pass
-        # transformers_logger.info('{} not found in df'.format(outliers)
-    return df
-
+def polynomial_features(train):
+    # Create new features
+    # 3* Polynomials on the top 10 existing features
+    train["OverallQual-s2"] = train["OverallQual"] ** 2
+    train["OverallQual-s3"] = train["OverallQual"] ** 3
+    train["OverallQual-Sq"] = np.sqrt(train["OverallQual"])
+    train["AllSF-2"] = train["AllSF"] ** 2
+    train["AllSF-3"] = train["AllSF"] ** 3
+    train["AllSF-Sq"] = np.sqrt(train["AllSF"])
+    train["AllFlrsSF-2"] = train["AllFlrsSF"] ** 2
+    train["AllFlrsSF-3"] = train["AllFlrsSF"] ** 3
+    train["AllFlrsSF-Sq"] = np.sqrt(train["AllFlrsSF"])
+    train["GrLivArea-2"] = train["GrLivArea"] ** 2
+    train["GrLivArea-3"] = train["GrLivArea"] ** 3
+    train["GrLivArea-Sq"] = np.sqrt(train["GrLivArea"])
+    train["SimplOverallQual-s2"] = train["SimplOverallQual"] ** 2
+    train["SimplOverallQual-s3"] = train["SimplOverallQual"] ** 3
+    train["SimplOverallQual-Sq"] = np.sqrt(train["SimplOverallQual"])
+    train["ExterQual-2"] = train["ExterQual"] ** 2
+    train["ExterQual-3"] = train["ExterQual"] ** 3
+    train["ExterQual-Sq"] = np.sqrt(train["ExterQual"])
+    train["GarageCars-2"] = train["GarageCars"] ** 2
+    train["GarageCars-3"] = train["GarageCars"] ** 3
+    train["GarageCars-Sq"] = np.sqrt(train["GarageCars"])
+    train["TotalBath-2"] = train["TotalBath"] ** 2
+    train["TotalBath-3"] = train["TotalBath"] ** 3
+    train["TotalBath-Sq"] = np.sqrt(train["TotalBath"])
+    train["KitchenQual-2"] = train["KitchenQual"] ** 2
+    train["KitchenQual-3"] = train["KitchenQual"] ** 3
+    train["KitchenQual-Sq"] = np.sqrt(train["KitchenQual"])
+    train["GarageScore-2"] = train["GarageScore"] ** 2
+    train["GarageScore-3"] = train["GarageScore"] ** 3
+    train["GarageScore-Sq"] = np.sqrt(train["GarageScore"])
+    return train
 
 def transform_bool(type_, df):
     if type_ == 'bool_':
@@ -713,6 +751,63 @@ def transform_text(type_, df):
 
     if type_ == 'text':
         transformer = Transformer()
+
+
+        columns_to_replace_No = ['PoolQC',
+        'MiscFeature',
+        'Alley',
+        'Fence',
+        'FireplaceQu',
+        'GarageType', 
+        'GarageFinish',
+         'GarageQual',
+          'GarageCond',
+          'BsmtQual',
+           'BsmtCond',
+            'BsmtExposure',
+             'BsmtFinType1',
+              'BsmtFinType2',
+              'MasVnrType'
+              
+              ]
+          
+        for column in columns_to_replace_No:
+            df = transformer.do_transformation('replace nan of column with None', 
+            utils.replace_nan_transformer, 
+            (df, column, 'No'),
+             {})
+
+        columns_to_replace_Mode = ['MSZoning',
+        'Electrical',
+        'KitchenQual',
+        'Exterior1st',
+        'Exterior2nd',
+        'SaleType'
+        
+         ]
+        for column in columns_to_replace_Mode:
+            df = transformer.do_transformation('replace nan of column with mode', 
+            utils.replace_nan_transformer, 
+            (df, column, df[column].mode()[0]),
+             {})
+
+        df = transformer.do_transformation('replace nan of column Functional with Typical', 
+            utils.replace_nan_transformer, 
+            (df, 'Functional', 'Typical'),
+             {})
+
+        columns_to_label_encode = ['FireplaceQu', 'BsmtQual', 'BsmtCond', 'GarageQual', 'GarageCond', 
+        'ExterQual', 'ExterCond','HeatingQC', 'PoolQC', 'KitchenQual', 'BsmtFinType1', 
+        'BsmtFinType2', 'Functional', 'Fence', 'BsmtExposure', 'GarageFinish', 'LandSlope',
+        'LotShape', 'PavedDrive', 'Street', 'Alley', 'CentralAir'
+        ]  
+        #'YrSold', 'MoSold']
+        columns_to_label_encode = ['Fence', 'GarageFinish']
+        for column in columns_to_label_encode:
+            df = transformer.do_transformation('label encoder transformer',
+             utils.label_encoder_transformer, 
+         (df, column), {})
+        
         # df = transformer.do_transformation('extract title transformer', function_apply_transformer,
         #     (df, extract_title, 'Name', 'Title'),
         #     {})
@@ -735,17 +830,78 @@ def transform_text(type_, df):
         # (df, 'Ticket_Modified'), {})
         
 
-        df = transformer.do_transformation('drop columns', drop_columns,
-        (df, df.columns),
+        # df = transformer.do_transformation('drop columns', utils.drop_columns,
+        # (df, ['Utilities']),
+        # {})
+
+                
+        to_drop = ['MiscFeature',
+        'Neighborhood',
+        'Heating',
+        'SaleType',
+        'Exterior1st',
+        'GarageType',
+        'HouseStyle',
+        'RoofMatl',
+        'MSZoning',
+        'Condition2',
+        'Foundation',
+        'LotConfig',
+        'RoofStyle',
+        'BldgType',
+        'SaleCondition',
+        'Condition1',
+        'MasVnrType',
+        'Exterior2nd',
+        'LandContour',
+        'Electrical'] + columns_to_label_encode + ['CentralAir']
+        df = transformer.do_transformation('drop columns', utils.drop_columns,
+        (df, to_drop),
         {})
-    
+
+        
     return df
 
 def transform_numerical(type_, df):
     if type_ == 'numerical':
         transformer = Transformer()
-        # directory = config_parser.get_configuration(args.configfile).get_directory('transformer')
-        # # transformers_logger.info(directory)
+        directory = config_parser.get_configuration(args.configfile).get_directory('transformer')
+        transformers_logger.info(directory)
+
+        try:
+            df = transformer.do_transformation('logtransform SalePrice', 
+            utils.log1p_transformer, 
+            (df, 'SalePrice'),
+             {})
+        except:
+            print('SalePrice will not be present in predictor step')
+        df = utils.skewed_features_log1p_transformer(df)
+        
+        columns_to_replace_Zero = ['GarageYrBlt',
+         'GarageArea',
+          'GarageCars',
+        'BsmtFinSF1',
+         'BsmtFinSF2',
+          'BsmtUnfSF',
+          'TotalBsmtSF',
+           'BsmtFullBath',
+            'BsmtHalfBath',
+            'MasVnrArea',
+            'MSSubClass'
+            ]
+
+        for column in columns_to_replace_Zero:
+            df = transformer.do_transformation('replace nan of column with Zero', 
+            utils.replace_nan_transformer, 
+            (df, column, 0),
+             {})
+
+
+        # outliers = utils.detect_outliers(df, df.columns)
+        # df = transformer.do_transformation('drop outliers', utils.drop_outliers, 
+        # (df, outliers),
+        # {})
+        
         # df = transformer.do_transformation('replace nan of fare column', replace_nan_transformer, 
         # (df, 'Fare', df['Fare'].median()), {})
         # # need to use the generated column title to fill/complete the missing entries in age
@@ -772,9 +928,8 @@ def transform_numerical(type_, df):
         #     create_family_features, 
         # (df, ),
         # {}
-        # )               
-
-        df = transformer.do_transformation('drop columns', drop_columns,
-        (df, ['LotFrontage', 'MasVnrArea', 'GarageYrBlt']),
+        # )       
+        df = transformer.do_transformation('drop columns', utils.drop_columns,
+        (df, ['LotFrontage']),
         {})
     return df
