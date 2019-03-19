@@ -3,12 +3,23 @@
 # every data goes under output_location
 # certain module level configurations are also possible
 
-output_location: &output_location /tmp/house-prices-advanced-regression-techniques-predictor
-src_location: /home/bineesh/Dropbox/competition/endtoend
-configfile : &configfile /home/bineesh/Dropbox/competition/endtoend/predictor.yml
+
+competition_name: &competition_name house-prices-advanced-regression-techniques
+# output location is the directory where the output and log files are generated
+# I might need to create a separete directory for logs within the output directory later
+
+output_location: &output_location !join [/tmp, !join_underscore [*competition_name, predictor] ]
+
+# location of source files
+src_location: &src_location /home/bineesh/Dropbox/competition/endtoend
+
+input_location: &input_location !join [/home/bineesh/Dropbox/competition/endtoend, *competition_name]
+configfile : &configfile !join [*src_location, predictor.yml]
+
 
 # generate graphs based on input data
 # generate figures as well as ipython notebooks
+
 exploratory_data_analysis: 
   program: exploratory_data_analysis.py
   log_location: exploratory_data_analysis.log
@@ -114,7 +125,7 @@ run_endtoend:
       - None
       - None
     run: no
-    input_file: house-prices-advanced-regression-techniques/test.csv
+    input_file: !join [*input_location , test.csv]
     configfile: *configfile
 
   generate_datatypes:
@@ -125,7 +136,7 @@ run_endtoend:
       - None
       - None
     run: yes
-    X_train: house-prices-advance-regression-techniques/test.csv
+    X_train: !join [*input_location , test.csv]
     configfile: *configfile
     
   transformer:

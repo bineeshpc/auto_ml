@@ -3,9 +3,19 @@
 # every data goes under output_location
 # certain module level configurations are also possible
 
-output_location: &output_location /tmp/house-prices-advanced-regression-techniques
-src_location: /home/bineesh/Dropbox/competition/endtoend
-configfile : &configfile /home/bineesh/Dropbox/competition/endtoend/config.yml
+
+competition_name: &competition_name house-prices-advanced-regression-techniques
+# output location is the directory where the output and log files are generated
+# I might need to create a separete directory for logs within the output directory later
+
+output_location: &output_location !join [/tmp, *competition_name]
+
+# location of source files
+src_location: &src_location /home/bineesh/Dropbox/competition/endtoend
+
+input_location: &input_location !join [/home/bineesh/Dropbox/competition/endtoend, *competition_name]
+configfile : &configfile !join [*src_location, config.yml]
+
 
 # generate graphs based on input data
 # generate figures as well as ipython notebooks
@@ -115,7 +125,7 @@ run_endtoend:
       - None
       - None
     run: no
-    input_file: house-prices-advance-regression-techniques/train.csv
+    input_file: !join [*competition_name, train.csv]
     configfile: *configfile
 
   generate_datatypes:
@@ -125,8 +135,8 @@ run_endtoend:
     location:
       - None
       - None
-    run: no
-    X_train: house-prices-advance-regression-techniques/train.csv
+    run: yes
+    X_train: !join [*competition_name, train.csv]
     configfile: *configfile
     
   transformer:
@@ -142,7 +152,7 @@ run_endtoend:
       - generate_datatypes
       - generate_datatypes
       - None
-    run: no
+    run: yes
     bool_: bool_.csv
     categorical: categorical.csv
     text: text.csv
@@ -162,7 +172,7 @@ run_endtoend:
       - transformer
       - transformer
       - None
-    run: no
+    run: yes
     bool_: bool_.csv
     categorical: categorical.csv
     text: text.csv
@@ -176,7 +186,7 @@ run_endtoend:
     location:
       - stacker
       - None
-    run: no
+    run: yes
     X_train: X_train.csv
     configfile: *configfile
 
@@ -190,7 +200,7 @@ run_endtoend:
       - post_stacker_transformer
       - None
       - None
-    run: no
+    run: yes
     input_file: X_train.csv 
     y_column: SalePrice
     configfile: *configfile
@@ -221,7 +231,7 @@ run_endtoend:
       - feature_selector
       - None
       - None
-    run: no
+    run: yes
     X_train: X_train.csv
     y_train: y_train.csv
     problemtype: regression

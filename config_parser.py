@@ -15,6 +15,23 @@ def parse_cmdline():
     return args
 
 
+## define custom tag handler
+def join(loader, node):
+    seq = loader.construct_sequence(node)
+    return '/'.join([str(i) for i in seq])
+
+
+## define custom tag handler
+def join_underscore(loader, node):
+    seq = loader.construct_sequence(node)
+    return '_'.join([str(i) for i in seq])
+
+
+## register the tag handler
+yaml.add_constructor('!join', join)
+yaml.add_constructor('!join_underscore', join_underscore)
+
+
 class ConfigParser:
     def __init__(self, configfile='config.yml'):
         self.configfile = configfile
