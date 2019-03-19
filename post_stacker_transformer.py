@@ -5,6 +5,7 @@ import argparse
 import pandas as pd
 import numpy as np
 import os
+import utils
 import config_parser
 
 def parse_cmdline():
@@ -32,6 +33,8 @@ def main(args):
                 print(column)
         except AttributeError:
             print('exception ', column)
+    print(utils.get_columns_with_null(df))
+    df['Utilities'] = df['Utilities'].fillna(df['Utilities'].mode()[0])
     component = 'post_stacker_transformer'
     cnf = config_parser.get_configuration(args.configfile)
     directory = cnf.get_directory(component)

@@ -63,9 +63,11 @@ def parse_cmdline():
 class ModelSelector:
     
     def get_model(self, problem_type, df, y, model_name):
-        self.problem_types = {'regression': Regressor(df, y),
-                              'classification': Classifier(df, y, model_name)}
-        return self.problem_types[problem_type]
+        if problem_type == 'regression':
+            obj = Regressor(df, y, model_name)
+        elif problem_type == 'classification':
+            obj = Classifier(df, y, model_name)
+        return obj
 
 class Classifier:
     
@@ -272,36 +274,28 @@ class Classifier:
         
 
 class Regressor:
-    def __init__(self, df, y):
+    def __init__(self, df, y, model_name):
         self.regressors = [
         ('linear_regression', LinearRegression()),
         ('lasso', Lasso(alpha=.5)),
         ('ridge', Ridge(alpha=.5)),
-        ('bayesian_ridge', BayesianRidge()),
-        ('adaboost_regressor', AdaBoostRegressor(DecisionTreeRegressor(max_depth=4),
-                                  n_estimators=300, random_state=42)),
-        ('sgd_regressor', SGDRegressor())
+        # ('bayesian_ridge', BayesianRidge()),
+        # ('adaboost_regressor', AdaBoostRegressor(DecisionTreeRegressor(max_depth=4),
+        #                           n_estimators=300, random_state=42)),
+        # ('sgd_regressor', SGDRegressor())
         ]
         
+        self.regressors = dict(self.regressors)
+
         self.df = df
         self.df1 = y
         self.X = self.df.values
         self.y = self.df1.values.reshape(1, -1)[0]
         self.cv_score = dict()
+        self.select_hyper_params(model_name)
+        self.build_winning_model()
         
-        for regressor_name, regressor in self.regressors:
-            self.create_pipeline(regressor, 'most_frequent')
-            self.cv_score[regressor_name] = self.build_model()
-
-        min_ = 10000000 # arbitrary
-        min_regressor = None
-        for regressor_name, values in self.cv_score.items():
-            mean_ = sum(values) / len(values)
-            if mean_ < min_:
-                min_regressor = regressor_name
-                min_ = mean_
-        print(min_regressor, mean_)
-        self.build_winning_model(min_regressor)
+        
         
 
     def create_imputer(self, strategy):
@@ -329,19 +323,36 @@ class Regressor:
          self.X,
          self.y, cv=5)
 
-    def build_winning_model(self, regressor_name):
-        for regressor_name_, regressor in self.regressors:
-            if regressor_name_ == regressor_name:
-                break
-        self.create_pipeline(regressor, 'most_frequent')
-        self.winning_model = self.pipeline.fit(self.X, self.y)
+    def build_winning_model(self):
+        self.winning_model = self.grid.fit(self.X, self.y)
         
-    def select_hyper_params(self):
-        pass
+    def select_hyper_params(self, model_name):
+        self.hyper_params = {
+            'linear_regression': {
+                'fit_intercept': [True, False],
+                'normalize': [True, False]
+            },
+            'lasso': {
+                'alpha': [0.1, 1.0, 10],
+                'normalize': [True, False]
+            },
+            'ridge' : {
+                'alpha': [.01, .1, 1.0, 10, 100],
+                'fit_intercept': [True, False],
+                'normalize': [True, False]
+            }
 
-    def grid_search_cv(self):
-        pass
-        
+        }
+        self.grid = self.grid_search_cv(model_name)
+        print(self.grid)
+        self.build_winning_model()
+
+    def grid_search_cv(self, model_name):
+        return GridSearchCV(self.regressors[model_name],
+                        param_grid=self.hyper_params[model_name],
+                            cv=5)
+    
+
     def save(self, configfile):
         filename = config_parser.get_configuration(configfile).get_file_location('hyper_parameter_selector', 'model_filename')
         with open(filename, 'wb') as f:
@@ -351,8 +362,10 @@ class Regressor:
 def main(args):
     df = pd.read_csv(args.inputfile)
     df1 = pd.read_csv(args.y)
-    model = ModelSelector().get_model(args.problem_type, df, df1, 'Random Forest')
+    model = ModelSelector().get_model(args.problem_type, df, df1, 'lasso')
     model.save(args.configfile)
+    
+    
 
 if __name__ == "__main__":
     args = parse_cmdline()

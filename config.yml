@@ -125,7 +125,7 @@ run_endtoend:
     location:
       - None
       - None
-    run: yes
+    run: no
     X_train: house-prices-advance-regression-techniques/train.csv
     configfile: *configfile
     
@@ -142,7 +142,7 @@ run_endtoend:
       - generate_datatypes
       - generate_datatypes
       - None
-    run: yes
+    run: no
     bool_: bool_.csv
     categorical: categorical.csv
     text: text.csv
@@ -162,7 +162,7 @@ run_endtoend:
       - transformer
       - transformer
       - None
-    run: yes
+    run: no
     bool_: bool_.csv
     categorical: categorical.csv
     text: text.csv
@@ -176,7 +176,7 @@ run_endtoend:
     location:
       - stacker
       - None
-    run: yes
+    run: no
     X_train: X_train.csv
     configfile: *configfile
 
@@ -190,7 +190,7 @@ run_endtoend:
       - post_stacker_transformer
       - None
       - None
-    run: yes
+    run: no
     input_file: X_train.csv 
     y_column: SalePrice
     configfile: *configfile
@@ -221,7 +221,7 @@ run_endtoend:
       - feature_selector
       - None
       - None
-    run: yes
+    run: no
     X_train: X_train.csv
     y_train: y_train.csv
     problemtype: regression
@@ -238,7 +238,7 @@ run_endtoend:
       - feature_selector
       - None
       - None
-    run: no
+    run: yes
     X_train: X_train.csv
     y_train: y_train.csv
     problem_type: regression
@@ -254,10 +254,11 @@ run_endtoend:
     location:
       - splitter
       - splitter
-      - model_selector
+      - hyper_parameter_selector
       - None
       - None
-    run: no
+      
+    run: yes
     X_test: X_test.csv
     y_test: y_test.csv
     winning_model: winning_model.pkl

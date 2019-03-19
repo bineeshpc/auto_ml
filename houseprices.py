@@ -793,7 +793,7 @@ def transform_text(type_, df):
 
         df = transformer.do_transformation('replace nan of column Functional with Typical', 
             utils.replace_nan_transformer, 
-            (df, 'Functional', 'Typical'),
+            (df, 'Functional', 'Typ'),
              {})
 
         columns_to_label_encode = ['FireplaceQu', 'BsmtQual', 'BsmtCond', 'GarageQual', 'GarageCond', 
