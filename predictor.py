@@ -23,6 +23,10 @@ def parse_cmdline():
                         type=str,                    
                         help='test file to train')
 
+    parser.add_argument('id_',
+                        type=str,                    
+                        help='id of the problem set for creating final output')
+
     parser.add_argument('y_column',
                         type=str,                    
                         help='y column')
@@ -53,19 +57,9 @@ def predictor(args):
     y_pred = model.predict(X_test)
     cnf = config_parser.get_configuration(args.configfile)
 
-    original_test_file = cnf.get_attribute('run_endtoend', 'generate_datatypes')['X_train']
-    # print(args.X_test)
-    # print(original_test_file)
-    df2 = pd.read_csv(original_test_file)
-    id_ = 'Id'
-    # print(set(df2.Id) - set(df1.Id))
-    # # print(df2.iloc[1458])
-    # print(df1[df1.Id == 2550])
-    # print(df2[df2.Id == 2550])
+    id_ = args.id_
     y_column = args.y_column
-    # print(df1.shape)
-    # print(df2.shape)
-    df = pd.DataFrame({id_:df1[id_], y_column : np.expm1(y_pred)})
+    df = pd.DataFrame({id_: range(1, 28000+1), y_column : y_pred})
     prediction_file = cnf.get_file_location('predictor', 'prediction_file')
     df.to_csv(prediction_file, index=False)
     

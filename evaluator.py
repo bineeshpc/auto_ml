@@ -50,9 +50,10 @@ def evaluator(X, y, model, problem_type, configfile):
     X_test = X.values
     y_test = y.values.reshape(1, -1)[0]
     y_pred = model.predict(X_test)
+    print(problem_type)
     if problem_type == 'regression':
-        print(mean_absolute_error(y_test, y_pred))
-        print(mean_squared_error(y_test, y_pred))
+        print('Absolute error is ', mean_absolute_error(y_test, y_pred))
+        print('Mean squared error is ', mean_squared_error(y_test, y_pred))
     if problem_type == 'classification':
         print(confusion_matrix(y_test, y_pred))
         print(classification_report(y_test, y_pred))

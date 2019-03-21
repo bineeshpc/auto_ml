@@ -59,8 +59,6 @@ def get_data_types(df, configfile):
 def generate_data_types(inputfile, configfile):
     df = pd.read_csv(inputfile)
     
-    if 'predictor.yml' not in configfile:
-        df = df[df.GrLivArea < 4000] # dirty hack
     configuration = config_parser.get_configuration(configfile)
     dfs = dict()
     directory = configuration.get_directory('generate_datatypes')

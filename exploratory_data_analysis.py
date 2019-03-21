@@ -14,6 +14,7 @@ from IPython.core.display import Image, display
 import nbformat as nbf
 
 
+
 def parse_cmdline():
     parser = argparse.ArgumentParser(description='exploratory data analysis in python')
     parser.add_argument('inputfile',

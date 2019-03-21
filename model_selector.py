@@ -35,6 +35,8 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.naive_bayes import GaussianNB
 from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
 
+from keras.models import Sequential
+from keras.layers import Dense
 
 def parse_cmdline():
     parser = argparse.ArgumentParser(description='model selector')
@@ -54,6 +56,31 @@ def parse_cmdline():
 
     args = parser.parse_args()
     return args
+
+
+def get_keras_model():
+    # Create the model: model
+    model = Sequential()
+
+    # Add the first hidden layer
+    model.add(Dense(50, activation='relu', input_shape=(784,)))
+
+    # Add the second hidden layer
+    model.add(Dense(50, activation='relu'))
+
+    # Add the output layer
+
+    model.add(Dense(10, activation='softmax'))
+
+    # Compile the model
+    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+
+    # Fit the model
+    return model
+
+
+
+
 
 class ModelSelector:
     
@@ -87,29 +114,32 @@ class Classifier:
 
     """
     def __init__(self, df, y):
-        names = ["Nearest Neighbors",
-                 "Linear SVM",
-                 "RBF SVM",
-                 # "Gaussian Process",
-                 "Decision Tree",
-                 "Random Forest",
+        names = [
+                # "Nearest Neighbors",
+                #  "Linear SVM",
+                #  "RBF SVM",
+                # "Gaussian Process",
+                #  "Decision Tree",
+                #  "Random Forest",
                  "Neural Net",
-                 "AdaBoost",
-                 "Naive Bayes",
-                 "QDA"
+                #  "AdaBoost",
+                #  "Naive Bayes",
+                #  "QDA",
+                #  "Keras"
         ]
 
         classifiers = [
-            KNeighborsClassifier(3),
-            SVC(kernel="linear", C=0.025),
-            SVC(gamma=2, C=1),
+            # KNeighborsClassifier(3),
+            # SVC(kernel="linear", C=0.025),
+            # SVC(gamma=2, C=1),
             # GaussianProcessClassifier(1.0 * RBF(1.0)),
-            DecisionTreeClassifier(max_depth=5),
-            RandomForestClassifier(max_depth=5, n_estimators=10, max_features=1),
+            # DecisionTreeClassifier(max_depth=5),
+            # RandomForestClassifier(max_depth=5, n_estimators=10, max_features=1),
             MLPClassifier(alpha=1),
-            AdaBoostClassifier(),
-            GaussianNB(),
-            QuadraticDiscriminantAnalysis()
+            # AdaBoostClassifier(),
+            # GaussianNB(),
+            # QuadraticDiscriminantAnalysis(),
+            # get_keras_model()
         ]
         
         self.classifiers = list(zip(names, classifiers))
@@ -158,7 +188,7 @@ class Classifier:
     def build_model(self):
         return cross_val_score(self.pipeline,
          self.X,
-         self.y, cv=5)
+         self.y, cv=5, scoring='accuracy')
 
     def build_winning_model(self, classifier_name):
         message = 'winning model is {}'.format(classifier_name)
